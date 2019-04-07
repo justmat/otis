@@ -13,7 +13,7 @@ function sc.init()
 		softcut.level(i, 1)
 		softcut.level_input_cut(i, i, 1)
 		-- hard panned l/r
-		softcut.pan(i, i == 1 and 0 or 1)
+		softcut.pan(i, .5)
 
 		softcut.rate(i, 3)
 		softcut.play(i, 1)
@@ -40,9 +40,39 @@ function sc.init()
 	end
 
 	for i = 1, 2 do
+	  -- tape speed controls
 		params:add_control(i .. "speed", i .. " speed", controlspec.new(-5, 5, "lin", 0.01, 3, ""))
 		params:set_action(i .. "speed", function(x) softcut.rate(i, x) end)
+		-- tape speed slew controls
+		params:add_control(i .. "speed_slew", i .. " speed slew", controlspec.new(0, 1, "lin", 0, 0, ""))
+		params:set_action(i .. "speed_slew", function(x) softcut.rate_slew_time(i, x) end)
+		-- tape length controls
+		params:add_control(i .. "tape_len", i .. " tape length", controlspec.new(.5, 12, "lin", 0, 2, "secs"))
+		params:set_action(i .. "tape_len", function(x) softcut.loop_end(i, x) end)
+		-- feedback controls
+		params:add_control(i .. "feedback", i .. " feedback", controlspec.new(0, 1, "lin", 0, .75, ""))
+		params:set_action(i .. "feedback", function(x) softcut.pre_level(i, x) end)
+		-- pan controls
+		params:add_control(i .. "pan", i .. " pan", controlspec.new(0, 1, "lin", 0, .5, ""))
+		params:set_action(i .. "pan", function(x) softcut.pan(i, x) end)
+		
+		params:add_separator()
 	end
 end
+
+
+function sc.skip(n)
+  -- resets to beginning of buffer
+  softcut.position(n, 0)
+end
+
+
+function sc.flip(n)
+  -- change tape direction
+  local spd = params:get(n .. "speed")
+  spd = -spd
+  softcut.rate(n, spd)
+end
+
 
 return sc

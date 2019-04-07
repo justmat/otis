@@ -3,10 +3,32 @@
 
 sc = include("lib/tooloops")
 
+local alt = 0
+
+
 function init()
   sc.init()
   redraw()
 end
+
+
+function key(n, z)
+  if n == 1 then alt = z end
+  if alt == 1 then
+    if n == 2 and z == 1 then
+      sc.skip(1)
+    elseif n == 3 and z ==1 then
+      sc.skip(2)
+    end
+  else
+    if n == 2 and z == 1 then
+      sc.flip(1)
+    elseif n == 3 and z == 1 then
+      sc.flip(2)
+    end
+  end
+end
+  
 
 function redraw()
   screen.clear()

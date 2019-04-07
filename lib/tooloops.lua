@@ -40,7 +40,7 @@ function sc.init()
 	end
 
 	for i = 1, 2 do
-		params:add_control(i .. "speed", i .. " speed", controlspec.new(-5, 5, "lin", 0, 3), "")
+		params:add_control(i .. "speed", i .. " speed", controlspec.new(-5, 5, "lin", 0.01, 3, ""))
 		params:set_action(i .. "speed", function(x) softcut.rate(i, x) end)
 	end
 end

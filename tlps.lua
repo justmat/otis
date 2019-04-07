@@ -6,6 +6,20 @@ sc = include("lib/tooloops")
 local alt = 0
 
 
+local function skip(n)
+  -- reset loop to start
+  softcut.position(n, 1)
+end
+
+
+local function flip(n)
+  -- flip tape direction
+  local spd = params:get(n .. "speed")
+  spd = -spd
+  softcut.rate(n, spd)
+end
+
+
 function init()
   sc.init()
   redraw()
@@ -16,15 +30,15 @@ function key(n, z)
   if n == 1 then alt = z end
   if alt == 1 then
     if n == 2 and z == 1 then
-      sc.skip(1)
+      skip(1)
     elseif n == 3 and z ==1 then
-      sc.skip(2)
+      skip(2)
     end
   else
     if n == 2 and z == 1 then
-      sc.flip(1)
+      flip(1)
     elseif n == 3 and z == 1 then
-      sc.flip(2)
+      flip(2)
     end
   end
 end

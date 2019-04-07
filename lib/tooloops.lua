@@ -12,6 +12,7 @@ function sc.init()
 		softcut.enable(i, 1)
 		softcut.level(i, 1)
 		softcut.level_input_cut(i, i, 1)
+		softcut.buffer(i, i)
 		-- hard panned l/r
 		softcut.pan(i, .5)
 
@@ -58,20 +59,6 @@ function sc.init()
 		
 		params:add_separator()
 	end
-end
-
-
-function sc.skip(n)
-  -- resets to beginning of buffer
-  softcut.position(n, 0)
-end
-
-
-function sc.flip(n)
-  -- change tape direction
-  local spd = params:get(n .. "speed")
-  spd = -spd
-  softcut.rate(n, spd)
 end
 
 

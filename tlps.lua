@@ -5,6 +5,9 @@
 local sc = include("lib/tooloops")
 
 local alt = 0
+local page = 1
+local rec1 = true
+local rec2 = true
 
 
 local function skip(n)
@@ -23,6 +26,7 @@ end
 
 function init()
   sc.init()
+  params:bang()
   
   local screen_metro = metro.init()
   screen_metro.time = 1/30
@@ -32,17 +36,37 @@ end
 
 
 function enc(n, d)
-  if alt == 1 then
-    if n == 2 then
-      params:delta("1feedback", d)
-    elseif n == 3 then
-      params:delta("2feedback", d)
+  if n == 1 then
+    page = util.clamp(page + d, 1, 2)
+  end
+  
+  if page == 1 then
+    if alt == 1 then
+      if n == 2 then
+        params:delta("1feedback", d)
+      elseif n == 3 then
+        params:delta("2feedback", d)
+      end
+    else
+      if n == 2 then
+        params:delta("1speed", d)
+      elseif n == 3 then
+        params:delta("2speed", d)
+      end
     end
   else
-    if n == 2 then
-      params:delta("1speed", d)
-    elseif n == 3 then
-      params:delta("2speed", d)
+    if alt == 1 then
+      if n == 2 then
+        params:delta("1pan", d)
+      elseif n == 3 then
+        params:delta("2pan", d)
+      end
+    else
+      if n == 2 then
+        params:delta("1tape_len", d)
+      elseif n == 3 then
+        params:delta("2tape_len", d)
+      end
     end
   end
 end
@@ -50,21 +74,58 @@ end
 
 function key(n, z)
   if n == 1 then alt = z end
-  if alt == 1 then
-    if n == 2 and z == 1 then
-      skip(1)
-    elseif n == 3 and z ==1 then
-      skip(2)
+  
+  if page == 1 then
+    if alt == 1 then
+      if n == 2 and z == 1 then
+        skip(1)
+      elseif n == 3 and z ==1 then
+        skip(2)
+      end
+    else
+      if n == 2 and z == 1 then
+        flip(1)
+      elseif n == 3 and z == 1 then
+        flip(2)
+      end
     end
   else
-    if n == 2 and z == 1 then
-      flip(1)
-    elseif n == 3 and z == 1 then
-      flip(2)
+    if alt == 1 then
+      if n == 2 and z == 1 then
+        softcut.buffer_clear_channel(1)
+      elseif n == 3 and z == 1 then
+        softcut.buffer_clear_channel(2)
+      end
+    else
+      if n == 2 and z == 1 then
+        softcut.rec(1, rec1 == true and 0 or 1)
+        rec1 = not rec1
+      elseif n == 3 and z == 1 then
+        softcut.rec(2, rec2 == true and 0 or 1)
+        rec2 = not rec2
+      end
     end
   end
 end
-  
+
+
+local function draw_left()
+  -- tape direction indicator
+  screen.line_rel(0, -7)
+  screen.line_rel(-3, 3)
+  screen.line_rel(3, 3)
+  screen.fill()
+end
+
+
+local function draw_right()
+  -- tape direction indicator
+  screen.line_rel(0, -7)
+  screen.line_rel(3, 3)
+  screen.line_rel(-3, 3)
+  screen.fill()
+end
+
 
 function redraw()
   screen.clear()
@@ -72,25 +133,65 @@ function redraw()
   screen.font_face(25)
   screen.font_size(6)
   
-  screen.level(alt == 1 and 3 or 15)
-  screen.move(64, 15)
-  screen.text_center("speed L : " .. math.abs(params:get("1speed")))
-  screen.move(64, 23)
-  screen.text_center("speed R : " .. math.abs(params:get("2speed")))
-  screen.level(alt == 1 and 15 or 3)
-  screen.move(64, 31)
-  screen.text_center("fdbk L : " .. params:get("1feedback"))
-  screen.move(64, 39)
-  screen.text_center("fdbk R : " .. params:get("2feedback"))
-  screen.level(alt == 1 and 3 or 15)
-  screen.move(5, 52)
-  screen.text("flip L")
-  screen.move(96, 52)
-  screen.text("flip R")
-  screen.level(alt == 1 and 15 or 3)
-  screen.move(5, 60)
-  screen.text("skip L")
-  screen.move(96, 60)
-  screen.text("skip R")
+  if page == 1 then
+    screen.level(alt == 1 and 3 or 15)
+    screen.move(64, 15)
+    screen.text_center("speed L : " .. math.abs(params:get("1speed")))
+    screen.move(64, 23)
+    screen.text_center("speed R : " .. math.abs(params:get("2speed")))
+    screen.level(alt == 1 and 15 or 3)
+    screen.move(64, 31)
+    screen.text_center("fdbk L : " .. params:get("1feedback"))
+    screen.move(64, 39)
+    screen.text_center("fdbk R : " .. params:get("2feedback"))
+  
+    screen.move(35, 16)
+    screen.level(params:get("1speed") < 0 and 15 or 3)
+    draw_left()
+    screen.move(35, 24)
+    screen.level(params:get("2speed") < 0 and 15 or 3)
+    draw_left()
+    screen.move(95, 16)
+    screen.level(params:get("1speed") > 0 and 15 or 3)
+    draw_right()
+    screen.move(95, 24)
+    screen.level(params:get("2speed") > 0 and 15 or 3)
+    draw_right()
+  
+  
+    screen.level(alt == 1 and 3 or 15)
+    screen.move(5, 52)
+    screen.text("flip")
+    screen.move(122, 52)
+    screen.text_right("flip")
+    screen.level(alt == 1 and 15 or 3)
+    screen.move(5, 60)
+    screen.text("skip")
+    screen.move(122, 60)
+    screen.text_right("skip")
+
+  else
+    screen.level(alt == 1 and 3 or 15)
+    screen.move(64, 15)
+    screen.text_center("tape len L : " .. params:get("1tape_len"))
+    screen.move(64, 23)
+    screen.text_center("tape len R : " .. params:get("2tape_len"))
+    screen.level(alt == 1 and 15 or 3)
+    screen.move(64, 31)
+    screen.text_center("panning L : " .. params:get("1pan"))
+    screen.move(64, 39)
+    screen.text_center("panning R : " .. params:get("2pan"))
+    
+    screen.level(alt == 1 and 3 or 15)
+    screen.move(5, 52)
+    screen.text(rec1 == true and "rec : on" or "rec : off")
+    screen.move(122, 52)
+    screen.text_right(rec2 == true and "rec : on" or "rec : off")
+    screen.level(alt == 1 and 15 or 3)
+    screen.move(5, 60)
+    screen.text("clear")
+    screen.move(122, 60)
+    screen.text_right("clear")
+  end
   screen.update()
 end

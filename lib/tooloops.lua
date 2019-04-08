@@ -5,11 +5,11 @@ sc = {}
 
 function sc.init()
 	audio.level_cut(1.0)
-	audio.level_adc_cut(1)
+	audio.level_adc_cut(.5)
 	audio.level_eng_cut(0)
   softcut.level_input_cut(1, 1, 1)
-  --softcut.level_input_cut(2, 1, 0)
-  --softcut.level_input_cut(1, 2, 0)
+  softcut.level_input_cut(2, 1, 0)
+  softcut.level_input_cut(1, 2, 0)
   softcut.level_input_cut(2, 2, 1)
   
 	for i = 1, 2 do
@@ -34,15 +34,15 @@ function sc.init()
 		softcut.rate_slew_time(i, 0)
 		softcut.level_slew_time(1,0.25)
 		
-		--[[softcut.filter_dry(i, 0.125)
+		softcut.filter_dry(i, 0.5)
 	  softcut.filter_fc(i, 1200)
 	  softcut.filter_lp(i, 0)
 	  softcut.filter_bp(i, 1.0)
-	  softcut.filter_rq(i, 2.0)]]
+	  softcut.filter_rq(i, 2.0)
 	end
   
-  softcut.pan(1, 1)
-  softcut.pan(2, -1)
+  --softcut.pan(1, 1)
+  --softcut.pan(2, -1)
   
 	for i = 1, 2 do
 	  -- tape speed controls

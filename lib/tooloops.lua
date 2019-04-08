@@ -55,7 +55,7 @@ function sc.init()
 		params:add_control(i .. "speed", i .. " speed", controlspec.new(-5, 5, "lin", 0.01, 3, ""))
 		params:set_action(i .. "speed", function(x) softcut.rate(i, x) end)
 		-- tape speed slew controls
-		params:add_control(i .. "speed_slew", i .. " speed slew", controlspec.new(0, 1, "lin", 0, 0, ""))
+		params:add_control(i .. "speed_slew", i .. " speed slew", controlspec.new(0, 1, "lin", 0, 0.25, ""))
 		params:set_action(i .. "speed_slew", function(x) softcut.rate_slew_time(i, x) end)
 		-- tape length controls
 		params:add_control(i .. "tape_len", i .. " tape length", controlspec.new(.5, 12, "lin", 0, 2, "secs"))

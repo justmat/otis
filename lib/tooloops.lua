@@ -41,9 +41,15 @@ function sc.init()
 	  softcut.filter_rq(i, 2.0)
 	end
   
-  --softcut.pan(1, 1)
-  --softcut.pan(2, -1)
-  
+  -- input level
+    params:add_control("input_level", "input level", controlspec.new(0, 1, "lin", 0, .75))
+    params:set_action("input_level", function(x) audio.level_adc_cut(x) end)
+    -- engine level
+    params:add_control("engine_level", "engine level", controlspec.new(0, 1, "lin", 0, 0))
+    params:set_action("engine_level", function(x) audio.level_eng_cut(x) end)
+    
+    params:add_separator()
+    
 	for i = 1, 2 do
 	  -- tape speed controls
 		params:add_control(i .. "speed", i .. " speed", controlspec.new(-5, 5, "lin", 0.01, 3, ""))
@@ -60,7 +66,7 @@ function sc.init()
 		-- pan controls
 		params:add_control(i .. "pan", i .. " pan", controlspec.new(0, 1, "lin", 0, i == 1 and 1 or 0, ""))
 		params:set_action(i .. "pan", function(x) softcut.pan(i, x) end)
-		
+    
 		params:add_separator()
 	end
 end

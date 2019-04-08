@@ -49,9 +49,9 @@ function enc(n, d)
       end
     else
       if n == 2 then
-        params:delta("1speed", d)
+        params:delta("1speed", d / 2)
       elseif n == 3 then
-        params:delta("2speed", d)
+        params:delta("2speed", d / 2)
       end
     end
   else
@@ -132,33 +132,32 @@ function redraw()
   screen.aa(0)
   screen.font_face(25)
   screen.font_size(6)
-  
+
   if page == 1 then
     screen.level(alt == 1 and 3 or 15)
     screen.move(64, 15)
-    screen.text_center("speed L : " .. math.abs(params:get("1speed")))
+    screen.text_center("speed L : " .. string.format("%.2f", math.abs(params:get("1speed"))))
     screen.move(64, 23)
-    screen.text_center("speed R : " .. math.abs(params:get("2speed")))
+    screen.text_center("speed R : " .. string.format("%.2f", math.abs(params:get("2speed"))))
     screen.level(alt == 1 and 15 or 3)
     screen.move(64, 31)
-    screen.text_center("fdbk L : " .. params:get("1feedback"))
+    screen.text_center("fdbk L : " .. string.format("%.2f", params:get("1feedback")))
     screen.move(64, 39)
-    screen.text_center("fdbk R : " .. params:get("2feedback"))
-  
-    screen.move(35, 16)
+    screen.text_center("fdbk R : " .. string.format("%.2f", params:get("2feedback")))
+
+    screen.move(34, 16)
     screen.level(params:get("1speed") < 0 and 15 or 3)
     draw_left()
-    screen.move(35, 24)
+    screen.move(34, 24)
     screen.level(params:get("2speed") < 0 and 15 or 3)
     draw_left()
-    screen.move(95, 16)
+    screen.move(96, 16)
     screen.level(params:get("1speed") > 0 and 15 or 3)
     draw_right()
-    screen.move(95, 24)
+    screen.move(96, 24)
     screen.level(params:get("2speed") > 0 and 15 or 3)
     draw_right()
-  
-  
+
     screen.level(alt == 1 and 3 or 15)
     screen.move(5, 52)
     screen.text("flip")
@@ -173,15 +172,15 @@ function redraw()
   else
     screen.level(alt == 1 and 3 or 15)
     screen.move(64, 15)
-    screen.text_center("tape len L : " .. params:get("1tape_len"))
+    screen.text_center("tape len L : " .. string.format("%.2f", params:get("1tape_len")))
     screen.move(64, 23)
-    screen.text_center("tape len R : " .. params:get("2tape_len"))
+    screen.text_center("tape len R : " .. string.format("%.2f", params:get("2tape_len")))
     screen.level(alt == 1 and 15 or 3)
     screen.move(64, 31)
-    screen.text_center("panning L : " .. params:get("1pan"))
+    screen.text_center("panning L : " .. string.format("%.2f", params:get("1pan")))
     screen.move(64, 39)
-    screen.text_center("panning R : " .. params:get("2pan"))
-    
+    screen.text_center("panning R : " .. string.format("%.2f", params:get("2pan")))
+
     screen.level(alt == 1 and 3 or 15)
     screen.move(5, 52)
     screen.text(rec1 == true and "rec : on" or "rec : off")

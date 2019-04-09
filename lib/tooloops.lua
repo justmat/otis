@@ -36,9 +36,8 @@ function sc.init()
 		
 		softcut.filter_dry(i, 1)
 	  softcut.filter_fc(i, 1200)
-	  softcut.filter_lp(i, 0)
-	  softcut.filter_bp(i, 0)
-	  softcut.filter_rq(i, 0)
+	  softcut.filter_lp(i, 1)
+	  softcut.filter_rq(i, 5)
 	end
   
   -- input level
@@ -66,6 +65,15 @@ function sc.init()
 		-- pan controls
 		params:add_control(i .. "pan", i .. " pan", controlspec.new(0, 1, "lin", 0, i == 1 and 1 or 0, ""))
 		params:set_action(i .. "pan", function(x) softcut.pan(i, x) end)
+    -- filter controls
+    params:add_control(i .. "cutoff", i .. " cutoff", controlspec.new(10, 12000, 'exp', 1, 12000, "Hz"))
+    params:set_action(i .. "cutoff", function(x) softcut.filter_fc(i, x) end)
+    
+    params:add_control(i .. "q", i .. " q", controlspec.new(0.0005, 8.0, 'exp', 0, 2.0, ""))
+    params:set_action(i .."q", function(x) softcut.filter_rq(i, x) end)
+    
+    params:add_control(i .. "filter_dry", i .. " filter dry", controlspec.new(0, 1, 'lin', 0, 0, ""))
+    params:set_action(i .."filter_dry", function(x) softcut.filter_dry(i, x) end)
     
 		params:add_separator()
 	end

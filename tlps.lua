@@ -1,11 +1,18 @@
--- not a coco
--- not a quantus
+--         stereo/tape
+--             looper/delay
+--          thing
+--
+--
+--     (>`.`)>              <(`.`<)
+--
 
 
 local sc = include("lib/tooloops")
 
 local alt = 0
 local page = 1
+local pages = {"play", "edit"}
+local page_time = util.time()
 local rec1 = true
 local rec2 = true
 
@@ -36,10 +43,12 @@ end
 
 
 function enc(n, d)
+  -- navigation
   if n == 1 then
     page = util.clamp(page + d, 1, 2)
+    page_time = util.time()
   end
-  
+  --play
   if page == 1 then
     if alt == 1 then
       if n == 2 then
@@ -55,6 +64,7 @@ function enc(n, d)
       end
     end
   else
+  -- edit
     if alt == 1 then
       if n == 2 then
         params:delta("1pan", d)
@@ -74,7 +84,7 @@ end
 
 function key(n, z)
   if n == 1 then alt = z end
-  
+  -- play
   if page == 1 then
     if alt == 1 then
       if n == 2 and z == 1 then
@@ -90,6 +100,7 @@ function key(n, z)
       end
     end
   else
+  -- edit
     if alt == 1 then
       if n == 2 and z == 1 then
         softcut.buffer_clear_channel(1)
@@ -132,7 +143,12 @@ function redraw()
   screen.aa(0)
   screen.font_face(25)
   screen.font_size(6)
-
+  screen.move(5, 5)
+  -- current page indication
+  if util.time() - page_time < .6 then
+    screen.text(pages[page])
+  end
+  -- play
   if page == 1 then
     screen.level(alt == 1 and 3 or 15)
     screen.move(64, 15)
@@ -168,8 +184,8 @@ function redraw()
     screen.text("skip")
     screen.move(122, 60)
     screen.text_right("skip")
-
   else
+  -- edit
     screen.level(alt == 1 and 3 or 15)
     screen.move(64, 15)
     screen.text_center("tape len L : " .. string.format("%.2f", params:get("1tape_len")))

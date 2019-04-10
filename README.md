@@ -1,7 +1,7 @@
 
 # currently unnamed softcut dual tape looper/delay thing
 
-_very much WIP_
+_very much a WIP, best to ignore_
 
 ---
 

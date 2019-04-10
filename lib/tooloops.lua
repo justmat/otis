@@ -38,7 +38,7 @@ function sc.init()
     softcut.filter_fc(i, 1200)
     softcut.filter_lp(i, 1)
     softcut.filter_rq(i, 5)
-	end
+  end
 
   -- input level
   params:add_control("input_level", "input level", controlspec.new(0, 1, "lin", 0, .75))

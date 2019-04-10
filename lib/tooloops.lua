@@ -4,14 +4,14 @@
 sc = {}
 
 function sc.init()
-	audio.level_cut(1.0)
+    audio.level_cut(1.0)
 	audio.level_adc_cut(.5)
 	audio.level_eng_cut(0)
-  softcut.level_input_cut(1, 1, 1)
-  softcut.level_input_cut(2, 1, 0)
-  softcut.level_input_cut(1, 2, 0)
-  softcut.level_input_cut(2, 2, 1)
-  
+    softcut.level_input_cut(1, 1, 1)
+    softcut.level_input_cut(2, 1, 0)
+    softcut.level_input_cut(1, 2, 0)
+    softcut.level_input_cut(2, 2, 1)
+
 	for i = 1, 2 do
 		softcut.enable(i, 1)
 		softcut.level(i, 1)
@@ -33,22 +33,22 @@ function sc.init()
 
 		softcut.rate_slew_time(i, 0)
 		softcut.level_slew_time(1,0.25)
-		
+
 		softcut.filter_dry(i, 1)
 	  softcut.filter_fc(i, 1200)
 	  softcut.filter_lp(i, 1)
-	  softcut.filter_rq(i, 5)
+    softcut.filter_rq(i, 5)
 	end
-  
+
   -- input level
-    params:add_control("input_level", "input level", controlspec.new(0, 1, "lin", 0, .75))
-    params:set_action("input_level", function(x) audio.level_adc_cut(x) end)
-    -- engine level
-    params:add_control("engine_level", "engine level", controlspec.new(0, 1, "lin", 0, 0))
-    params:set_action("engine_level", function(x) audio.level_eng_cut(x) end)
-    
-    params:add_separator()
-    
+  params:add_control("input_level", "input level", controlspec.new(0, 1, "lin", 0, .75))
+  params:set_action("input_level", function(x) audio.level_adc_cut(x) end)
+  -- engine level
+  params:add_control("engine_level", "engine level", controlspec.new(0, 1, "lin", 0, 0))
+  params:set_action("engine_level", function(x) audio.level_eng_cut(x) end)
+
+  params:add_separator()
+
 	for i = 1, 2 do
 	  -- tape speed controls
 		params:add_control(i .. "speed", i .. " speed", controlspec.new(-8, 8, "lin", 0.05, 8, ""))
@@ -68,13 +68,13 @@ function sc.init()
     -- filter controls
     params:add_control(i .. "cutoff", i .. " cutoff", controlspec.new(10, 12000, 'exp', 1, 12000, "Hz"))
     params:set_action(i .. "cutoff", function(x) softcut.filter_fc(i, x) end)
-    
+
     params:add_control(i .. "q", i .. " q", controlspec.new(0.0005, 8.0, 'exp', 0, 2.0, ""))
     params:set_action(i .."q", function(x) softcut.filter_rq(i, x) end)
-    
+
     params:add_control(i .. "filter_dry", i .. " filter dry", controlspec.new(0, 1, 'lin', 0, 0, ""))
     params:set_action(i .."filter_dry", function(x) softcut.filter_dry(i, x) end)
-    
+
 		params:add_separator()
 	end
 end

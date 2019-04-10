@@ -1,3 +1,4 @@
-# tlps
-softcut dual tape looper/delay 
-very much WIP
+
+# currently unnamed softcut dual tape looper/delay thing
+
+_very much WIP_

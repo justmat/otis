@@ -34,7 +34,7 @@ end
 function init()
   sc.init()
   params:bang()
-  
+
   local screen_metro = metro.init()
   screen_metro.time = 1/30
   screen_metro.event = function() redraw() end

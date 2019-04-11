@@ -48,6 +48,7 @@ function init()
   screen_metro:start()
 end
 
+-- norns controls
 
 function enc(n, d)
   -- navigation
@@ -126,6 +127,7 @@ function key(n, z)
   end
 end
 
+-- screen drawing 
 
 local function draw_left()
   -- tape direction indicator

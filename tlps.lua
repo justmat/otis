@@ -19,7 +19,7 @@ local rec2 = true
 
 local function skip(n)
   -- reset loop to start, or random position
-  if params:get("skip") == 1 then
+  if params:get("skip_controls") == 1 then
     softcut.position(n, 0)
   else
     softcut.position(n, math.random(params:get(n .. "tape_len")))
@@ -35,11 +35,27 @@ local function flip(n)
 end
 
 
+local function speed_control(n, d)
+  -- free controls
+  if params:get("speed_controls") == 1 then
+    params:delta(n - 1 .. "speed", d / 2)
+  else
+    -- quantized to octaves
+    if d < 0 then
+      params:set(n - 1 .. "speed", params:get(n - 1 .. "speed") / 2)
+    else
+      params:set(n - 1 .. "speed", params:get(n - 1 .."speed") * 2)
+    end
+  end
+end
+
+
 function init()
   sc.init()
-  
-  params:add_option("skip", "skip destination", {"start", "???"}, 1)
-  
+
+  params:add_option("skip_controls", "skip controls", {"start", "???"}, 1)
+  params:add_option("speed_controls", "speed controls", {"free", "quantized"}, 1)
+
   params:bang()
   softcut.buffer_clear()
 
@@ -66,10 +82,8 @@ function enc(n, d)
         params:delta("2feedback", d)
       end
     else
-      if n == 2 then
-        params:delta("1speed", d / 2)
-      elseif n == 3 then
-        params:delta("2speed", d / 2)
+      if n == 2 or n == 3 then
+        speed_control(n, d)
       end
     end
   else

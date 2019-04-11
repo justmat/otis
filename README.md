@@ -21,6 +21,7 @@ there are two pages, _play_ and _edit_. navigate with encoder 1.
 * ALT + enc 2 = feedback L
 * ALT + enc 3 = feedback R
 
+_nb: skip behavior by default is "loop reset", however it can be configured to jump to random positions via the PARAMETERS menu._
 
 ### _edit_
 

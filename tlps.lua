@@ -41,6 +41,7 @@ function init()
   params:add_option("skip", "skip destination", {"start", "???"}, 1)
   
   params:bang()
+  softcut.buffer_clear()
 
   local screen_metro = metro.init()
   screen_metro.time = 1/30

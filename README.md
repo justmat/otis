@@ -15,7 +15,6 @@ there are two pages, _play_ and _edit_. navigate with encoder 1.
 * ALT + key 2 = skip L
 * ALT + key 2 = skip R
 
-* enc 1 = navigation
 * enc 2 = tape speed L
 * enc 3 = tape speed R
 * ALT + enc 2 = feedback L
@@ -31,7 +30,6 @@ _nb: skip behavior by default is "loop reset", however it can be configured to j
 * ALT + key 2 = clear buffer L
 * ALT + key 3 = clear buffer R
 
-* enc 1 = navigation
 * enc 2 = tape length L
 * enc 3 = tape length R
 * ALT + enc 2 = panning L

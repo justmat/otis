@@ -18,8 +18,12 @@ local rec2 = true
 
 
 local function skip(n)
-  -- reset loop to start
-  softcut.position(n, 1)
+  -- reset loop to start, or random position
+  if params:get("skip") == 1 then
+    softcut.position(n, 0)
+  else
+    softcut.position(n, math.random(params:get(n .. "tape_len")))
+  end
 end
 
 
@@ -33,6 +37,9 @@ end
 
 function init()
   sc.init()
+  
+  params:add_option("skip", "skip destination", {"start", "???"}, 1)
+  
   params:bang()
 
   local screen_metro = metro.init()

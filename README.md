@@ -1,8 +1,6 @@
 
 # otis
 
-_very much a WIP, best to ignore_
-
 ---
 
 there are two pages, _play_ and _edit_. navigate with encoder 1.

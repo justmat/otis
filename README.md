@@ -21,7 +21,7 @@ _nb: skip behavior by default is a loop reset; however, it can be configured to 
 * ALT + enc 2 = feedback L
 * ALT + enc 3 = feedback R
 
-_nb: tape speed behavior by default is free; however, it can be configured to be quantized to octaves via the ```PARMAETERS``` menu._
+_nb: tape speed behavior by default is free; however, it can be quantized to octaves via the ```PARMAETERS``` menu._
 
 
 ### _edit_

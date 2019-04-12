@@ -17,7 +17,7 @@
 --
 --
 --
--- there are two pages of 
+-- there are two pages of
 -- controls, play and edit.
 --
 -- navigate with enc 1.
@@ -187,7 +187,7 @@ function key(n, z)
   end
 end
 
--- screen drawing 
+-- screen drawing
 
 local function draw_left()
   -- tape direction indicator

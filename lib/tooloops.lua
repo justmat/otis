@@ -43,7 +43,7 @@ function sc.init()
     softcut.filter_hp(i, 0)
     softcut.filter_bp(i, 0)
     softcut.filter_br(i, 0)
-    
+
   end
 
   -- input level
@@ -57,13 +57,13 @@ function sc.init()
 
   for i = 1, 2 do
     -- tape speed controls
-    params:add_control(i .. "speed", i .. " speed", controlspec.new(-8, 8, "lin", 0.05, 8, ""))
+    params:add_control(i .. "speed", i .. " speed", controlspec.new(-4, 4, "lin", 0.05, 1, ""))
     params:set_action(i .. "speed", function(x) softcut.rate(i, x) end)
     -- tape speed slew controls
     params:add_control(i .. "speed_slew", i .. " speed slew", controlspec.new(0, 1, "lin", 0, 0.1, ""))
     params:set_action(i .. "speed_slew", function(x) softcut.rate_slew_time(i, x) end)
     -- tape length controls
-    params:add_control(i .. "tape_len", i .. " tape length", controlspec.new(.5, 16, "lin", 0, 16, "secs"))
+    params:add_control(i .. "tape_len", i .. " tape length", controlspec.new(.5, 16, "lin", 0, 2, "secs"))
     params:set_action(i .. "tape_len", function(x) softcut.loop_end(i, x) end)
     -- feedback controls
     params:add_control(i .. "feedback", i .. " feedback", controlspec.new(0, 1, "lin", 0, .75, ""))

@@ -1,6 +1,8 @@
 
 # otis
 
+stereo "tape" delay/looper thing.
+
 ---
 
 there are two pages, _play_ and _edit_. navigate with encoder 1. hold key 1 for ALT.

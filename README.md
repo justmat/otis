@@ -1,7 +1,7 @@
 
 # otis
 
-stereo "tape" delay/looper thing.
+stereo "tape" delay/looper thing for norns 2.0
 
 ---
 

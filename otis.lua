@@ -1,8 +1,8 @@
 --
 --          otis
---      stereo  tape    _
+--      stereo tape     _
 --        delay/         | \
---          looper        | |
+--           looper       | |
 --                         | |
 --    |\                   | |
 --   /, ~\              / /

@@ -1,5 +1,5 @@
 
-# currently unnamed softcut dual tape looper/delay thing
+# otis
 
 _very much a WIP, best to ignore_
 

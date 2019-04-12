@@ -1,10 +1,55 @@
---         stereo/tape
---             looper/delay
---          thing
+--
+--          otis
+--      stereo  tape    _
+--        delay/         | \
+--          looper        | |
+--                         | |
+--    |\                   | |
+--   /, ~\              / /
+--  X     `-.........-------./ /
+--   ~-. ~  ~              |
+--      \             /   |
+--       \  /_     ___\ /
+--       | /\ ~~~~~   \ |
+--       | | \           || |
+--       | |\ \         || )
+--      (_/ (_/       ((_/
 --
 --
---     (>`.`)>              <(`.`<)
 --
+-- there are two pages of 
+-- controls, play and edit.
+--
+-- navigate with enc 1.
+-- ALT is key 1.
+--
+-- play ----------
+--
+-- key2 = flip L
+-- key3 = flip R
+-- ALT + key2 = skip L
+-- ALT + key3 = skip R
+--
+-- enc2 = tape speed L
+-- enc3 = tape speed R
+-- ALT + enc2 = feedback L
+-- ALT + enc3 = feedback R
+--
+-- edit ----------
+--
+-- key2 = rec on/off L
+-- key3 = rec on/off R
+-- ALT + key2 = clear buffer L
+-- ALT + key3 = clear buffer R
+--
+-- enc2 = tape length L
+-- enc3 = tape length R
+-- ALT + enc2 = pan L
+-- ALT + enc3 = pan R
+--
+-- ----------
+--
+-- v0.2 by @justmat
 
 
 local sc = include("lib/tooloops")

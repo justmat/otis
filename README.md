@@ -3,11 +3,10 @@
 
 ---
 
-there are two pages, _play_ and _edit_. navigate with encoder 1.
+there are two pages, _play_ and _edit_. navigate with encoder 1. hold key 1 for ALT.
 
 ### _play_
 
-* key 1 = ALT
 * key 2 = flip L
 * key 3 = flip R
 * ALT + key 2 = skip L
@@ -25,7 +24,6 @@ _nb: tape speed behavior by default is free, however it can be configured to be 
 
 ### _edit_
 
-* key 1 = ALT
 * key 2 = rec on/off L
 * key 3 rec on/off R
 * ALT + key 2 = clear buffer L

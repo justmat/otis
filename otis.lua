@@ -57,9 +57,9 @@ local sc = include("lib/tooloops")
 local alt = 0
 local page = 1
 local pages = {"play", "edit"}
-local page_time = util.time()
-local skip_time_L = util.time()
-local skip_time_R = util.time()
+local page_time = 1
+local skip_time_L = 1
+local skip_time_R = 1
 local rec1 = true
 local rec2 = true
 
@@ -231,7 +231,7 @@ function redraw()
   screen.font_size(6)
   screen.move(5, 5)
   -- current page indication
-  if util.time() - page_time < .6 then
+  if util.time() - page_time < 1 then
     screen.text(pages[page])
   end
   -- play

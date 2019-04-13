@@ -1,4 +1,4 @@
--- softcut setup for tlps
+-- softcut setup for otis
 --
 -- v0.1
 

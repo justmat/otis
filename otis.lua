@@ -1,8 +1,8 @@
 --
 --          otis
---      stereo tape     _
+--      stereo  tape    _
 --        delay/         | \
---           looper       | |
+--          looper        | |
 --                         | |
 --    |\                   | |
 --   /, ~\              / /
@@ -58,6 +58,8 @@ local alt = 0
 local page = 1
 local pages = {"play", "edit"}
 local page_time = util.time()
+local skip_time_L = util.time()
+local skip_time_R = util.time()
 local rec1 = true
 local rec2 = true
 
@@ -157,8 +159,10 @@ function key(n, z)
     if alt == 1 then
       if n == 2 and z == 1 then
         skip(1)
+        skip_time_L = util.time()
       elseif n == 3 and z ==1 then
         skip(2)
+        skip_time_R = util.time()
       end
     else
       if n == 2 and z == 1 then
@@ -204,6 +208,19 @@ local function draw_right()
   screen.line_rel(3, 3)
   screen.line_rel(-3, 3)
   screen.fill()
+end
+
+
+local function draw_skip()
+  -- skip indicator
+  screen.line_rel(0, -5)
+  screen.line_rel(-11, 0)
+  screen.line_rel(0, 5)
+  screen.line_rel(5, 0)
+  screen.line_rel(-2, -2)
+  screen.line_rel(0, 4)
+  screen.line_rel(2, -2)
+  screen.stroke()
 end
 
 
@@ -253,6 +270,17 @@ function redraw()
     screen.text("skip")
     screen.move(122, 60)
     screen.text_right("skip")
+    
+    if util.time() - skip_time_L < .2 then
+      screen.move(18, 40)
+      draw_skip()
+    end
+    
+    if util.time() - skip_time_R < .2 then
+      screen.move(120, 40)
+      draw_skip()
+    end
+    
   else
   -- edit
     screen.level(alt == 1 and 3 or 15)

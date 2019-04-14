@@ -3,6 +3,8 @@
 
 stereo "tape" delay/looper thing for norns 2.0
 
+_very much a work in progress_
+
 ---
 
 there are three pages, _mix_, _play_, and _edit_. navigate with encoder 1. hold key 1 for ALT.

@@ -5,7 +5,14 @@ stereo "tape" delay/looper thing for norns 2.0
 
 ---
 
-there are two pages, _play_ and _edit_. navigate with encoder 1. hold key 1 for ALT.
+there are three pages, _mix_, _play_, and _edit_. navigate with encoder 1. hold key 1 for ALT.
+
+### _mix_
+
+* key 2 = mute L
+* key 3 = mute R
+* enc 2 = vol L
+* enc 3 = vol R
 
 ### _play_
 

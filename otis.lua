@@ -17,11 +17,19 @@
 --
 --
 --
--- there are two pages of
--- controls, play and edit.
+-- there are three pages of
+-- controls, mix, play, and edit.
 --
 -- navigate with enc 1.
 -- ALT is key 1.
+--
+-- mix ----------
+--
+-- key2 = mute L
+-- key3 = mute R
+--
+-- enc2 = vol L
+-- enc3 = vol R
 --
 -- play ----------
 --
@@ -49,17 +57,21 @@
 --
 -- ----------
 --
--- v0.2 by @justmat
+-- v0.3 by @justmat
 
 
 local sc = include("lib/tooloops")
 
 local alt = 0
-local page = 1
-local pages = {"play", "edit"}
+local page = 2
+local pages = {"mix", "play", "edit"}
 local page_time = 1
 local skip_time_L = 1
 local skip_time_R = 1
+local muted_L = 0
+local pre_mute_vol_L = 0
+local muted_R = 0
+local pre_mute_vol_R = 0
 local rec1 = true
 local rec2 = true
 
@@ -118,11 +130,22 @@ end
 function enc(n, d)
   -- navigation
   if n == 1 then
-    page = util.clamp(page + d, 1, 2)
+    page = util.clamp(page + d, 1, 3)
     page_time = util.time()
   end
-  --play
+  --mix
   if page == 1 then
+    if n == 2 then
+      if muted_L == 0 then
+        params:delta("1vol", d)
+      end
+    elseif n == 3 then
+      if muted_R == 0 then
+        params:delta("2vol", d)
+      end
+    end
+  --play
+  elseif page == 2 then
     if alt == 1 then
       if n == 2 then
         params:delta("1feedback", d)
@@ -134,7 +157,7 @@ function enc(n, d)
         speed_control(n, d)
       end
     end
-  else
+  elseif page == 3 then
   -- edit
     if alt == 1 then
       if n == 2 then
@@ -155,8 +178,29 @@ end
 
 function key(n, z)
   if n == 1 then alt = z end
-  -- play
+  -- mix
   if page == 1 then
+    if n == 2 and z == 1 then
+      if muted_L == 0 then
+        pre_mute_vol_L = params:get("1vol")
+        softcut.level(1, 0)
+        muted_L = 1
+      else
+        softcut.level(1, pre_mute_vol_L)
+        muted_L = 0
+      end
+    elseif n == 3 and z == 1 then
+      if muted_R == 0 then
+        pre_mute_vol_R = params:get("2vol")
+        softcut.level(2, 0)
+        muted_R = 1
+      else
+        softcut.level(2, pre_mute_vol_R)
+        muted_R = 0
+      end
+    end
+  -- play 
+  elseif page == 2 then
     if alt == 1 then
       if n == 2 and z == 1 then
         skip(1)
@@ -172,7 +216,7 @@ function key(n, z)
         flip(2)
       end
     end
-  else
+  elseif page == 3 then
   -- edit
     if alt == 1 then
       if n == 2 and z == 1 then
@@ -225,6 +269,98 @@ local function draw_skip()
 end
 
 
+local function draw_page_mix()
+  -- screen drawing for the mix page
+  screen.level(15)
+  screen.move(64, 23)
+  screen.text_center("volume L : " .. string.format("%.2f", params:get("1vol")))
+  screen.move(64, 31)
+  screen.text_center("volume R : " .. string.format("%.2f", params:get("2vol")))
+  
+  screen.level(muted_L == 0 and 3 or 15)
+  screen.move(5, 52)
+  screen.text("mute L")
+  screen.level(muted_R == 0 and 3 or 15)
+  screen.move(122, 52)
+  screen.text_right("mute R")
+end
+
+
+local function draw_page_play()
+  -- screen drawing for the play page
+  screen.level(alt == 1 and 3 or 15)
+  screen.move(64, 15)
+  screen.text_center("speed L : " .. string.format("%.2f", math.abs(params:get("1speed"))))
+  screen.move(64, 23)
+  screen.text_center("speed R : " .. string.format("%.2f", math.abs(params:get("2speed"))))
+  screen.level(alt == 1 and 15 or 3)
+  screen.move(64, 31)
+  screen.text_center("fdbk L : " .. string.format("%.2f", params:get("1feedback")))
+  screen.move(64, 39)
+  screen.text_center("fdbk R : " .. string.format("%.2f", params:get("2feedback")))
+
+  screen.move(34, 16)
+  screen.level(params:get("1speed") < 0 and 15 or 3)
+  draw_left()
+  screen.move(34, 24)
+  screen.level(params:get("2speed") < 0 and 15 or 3)
+  draw_left()
+  screen.move(96, 16)
+  screen.level(params:get("1speed") > 0 and 15 or 3)
+  draw_right()
+  screen.move(96, 24)
+  screen.level(params:get("2speed") > 0 and 15 or 3)
+  draw_right()
+
+  screen.level(alt == 1 and 3 or 15)
+  screen.move(5, 52)
+  screen.text("flip")
+  screen.move(122, 52)
+  screen.text_right("flip")
+  screen.level(alt == 1 and 15 or 3)
+  screen.move(5, 60)
+  screen.text("skip")
+  screen.move(122, 60)
+  screen.text_right("skip")
+  
+  if util.time() - skip_time_L < .2 then
+    screen.move(18, 40)
+    draw_skip()
+  end
+  
+  if util.time() - skip_time_R < .2 then
+    screen.move(120, 40)
+    draw_skip()
+  end
+end
+
+
+local function draw_page_edit()
+  -- screen drawing for edit page
+  screen.level(alt == 1 and 3 or 15)
+  screen.move(64, 15)
+  screen.text_center("tape len L : " .. string.format("%.2f", params:get("1tape_len")))
+  screen.move(64, 23)
+  screen.text_center("tape len R : " .. string.format("%.2f", params:get("2tape_len")))
+  screen.level(alt == 1 and 15 or 3)
+  screen.move(64, 31)
+  screen.text_center("panning L : " .. string.format("%.2f", params:get("1pan")))
+  screen.move(64, 39)
+  screen.text_center("panning R : " .. string.format("%.2f", params:get("2pan")))
+
+  screen.level(alt == 1 and 3 or 15)
+  screen.move(5, 52)
+  screen.text(rec1 == true and "rec : on" or "rec : off")
+  screen.move(122, 52)
+  screen.text_right(rec2 == true and "rec : on" or "rec : off")
+  screen.level(alt == 1 and 15 or 3)
+  screen.move(5, 60)
+  screen.text("clear")
+  screen.move(122, 60)
+  screen.text_right("clear")
+end
+
+
 function redraw()
   screen.clear()
   screen.aa(0)
@@ -235,76 +371,15 @@ function redraw()
   if util.time() - page_time < 1 then
     screen.text(pages[page])
   end
-  -- play
+  
   if page == 1 then
-    screen.level(alt == 1 and 3 or 15)
-    screen.move(64, 15)
-    screen.text_center("speed L : " .. string.format("%.2f", math.abs(params:get("1speed"))))
-    screen.move(64, 23)
-    screen.text_center("speed R : " .. string.format("%.2f", math.abs(params:get("2speed"))))
-    screen.level(alt == 1 and 15 or 3)
-    screen.move(64, 31)
-    screen.text_center("fdbk L : " .. string.format("%.2f", params:get("1feedback")))
-    screen.move(64, 39)
-    screen.text_center("fdbk R : " .. string.format("%.2f", params:get("2feedback")))
+    draw_page_mix()
 
-    screen.move(34, 16)
-    screen.level(params:get("1speed") < 0 and 15 or 3)
-    draw_left()
-    screen.move(34, 24)
-    screen.level(params:get("2speed") < 0 and 15 or 3)
-    draw_left()
-    screen.move(96, 16)
-    screen.level(params:get("1speed") > 0 and 15 or 3)
-    draw_right()
-    screen.move(96, 24)
-    screen.level(params:get("2speed") > 0 and 15 or 3)
-    draw_right()
+  elseif page == 2 then
+    draw_page_play()
 
-    screen.level(alt == 1 and 3 or 15)
-    screen.move(5, 52)
-    screen.text("flip")
-    screen.move(122, 52)
-    screen.text_right("flip")
-    screen.level(alt == 1 and 15 or 3)
-    screen.move(5, 60)
-    screen.text("skip")
-    screen.move(122, 60)
-    screen.text_right("skip")
-    
-    if util.time() - skip_time_L < .2 then
-      screen.move(18, 40)
-      draw_skip()
-    end
-    
-    if util.time() - skip_time_R < .2 then
-      screen.move(120, 40)
-      draw_skip()
-    end
-    
-  else
-  -- edit
-    screen.level(alt == 1 and 3 or 15)
-    screen.move(64, 15)
-    screen.text_center("tape len L : " .. string.format("%.2f", params:get("1tape_len")))
-    screen.move(64, 23)
-    screen.text_center("tape len R : " .. string.format("%.2f", params:get("2tape_len")))
-    screen.level(alt == 1 and 15 or 3)
-    screen.move(64, 31)
-    screen.text_center("panning L : " .. string.format("%.2f", params:get("1pan")))
-    screen.move(64, 39)
-    screen.text_center("panning R : " .. string.format("%.2f", params:get("2pan")))
-
-    screen.level(alt == 1 and 3 or 15)
-    screen.move(5, 52)
-    screen.text(rec1 == true and "rec : on" or "rec : off")
-    screen.move(122, 52)
-    screen.text_right(rec2 == true and "rec : on" or "rec : off")
-    screen.level(alt == 1 and 15 or 3)
-    screen.move(5, 60)
-    screen.text("clear")
-    screen.move(122, 60)
-    screen.text_right("clear")
+  elseif page == 3 then
+    draw_page_edit()
   end
   screen.update()
 end

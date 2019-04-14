@@ -56,6 +56,9 @@ function sc.init()
   params:add_separator()
 
   for i = 1, 2 do
+    -- l/r volume controls
+    params:add_control(i .. "vol", i .. " vol", controlspec.new(0, 1, "lin", 0, 1, ""))
+    params:set_action(i .. "vol", function(x) softcut.level(i, x) end)
     -- tape speed controls
     params:add_control(i .. "speed", i .. " speed", controlspec.new(-4, 4, "lin", 0.05, 1, ""))
     params:set_action(i .. "speed", function(x) softcut.rate(i, x) end)

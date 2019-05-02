@@ -31,8 +31,8 @@ there are three pages, _mix_, _play_, and _edit_. navigate with encoder 1. hold 
 * ALT + enc 2 = feedback L
 * ALT + enc 3 = feedback R
 
-_nb: tape speed behavior by default is free; however, it can be quantized to octaves via the **edit** screen._
-_skip behavior by default is a loop reset; however, it can be configured to jump to random positions via the **edit** screen._
+_nb: tape speed behavior by default is free; however, it can be quantized to octaves via the **edit** page._
+_skip behavior by default is a loop reset; however, it can be configured to jump to random positions via the **edit** page._
 
 ### _edit_
 

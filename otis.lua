@@ -30,6 +30,8 @@
 --
 -- enc2 = vol L
 -- enc3 = vol R
+-- ALT + enc2 = pan L
+-- ALT + enc3 = pan R
 --
 -- play ----------
 --
@@ -52,19 +54,18 @@
 --
 -- enc2 = tape length L
 -- enc3 = tape length R
--- ALT + enc2 = pan L
--- ALT + enc3 = pan R
+-- ALT + enc2 = skip config
+-- ALT + enc3 = speed config
 --
 -- ----------
 --
--- v0.3 by @justmat
+-- v0.4 by @justmat
 
 
-local sc = include("lib/tooloops")
+local sc = include("lib/tlps")
 
 local alt = 0
 local page = 2
-local pages = {"mix", "play", "edit"}
 local page_time = 1
 local skip_time_L = 1
 local skip_time_R = 1
@@ -74,6 +75,10 @@ local muted_R = 0
 local pre_mute_vol_R = 0
 local rec1 = true
 local rec2 = true
+
+local pages = {"mix", "play", "edit"}
+local skip_options = {"start", "???"}
+local speed_options = {"free", "octaves"}
 
 
 local function skip(n)
@@ -113,8 +118,8 @@ end
 function init()
   sc.init()
 
-  params:add_option("skip_controls", "skip controls", {"start", "???"}, 1)
-  params:add_option("speed_controls", "speed controls", {"free", "quantized"}, 1)
+  params:add_option("skip_controls", "skip controls", skip_options, 1)
+  params:add_option("speed_controls", "speed controls", speed_options, 1)
 
   params:bang()
   softcut.buffer_clear()
@@ -133,18 +138,26 @@ function enc(n, d)
     page = util.clamp(page + d, 1, 3)
     page_time = util.time()
   end
-  --mix
+  -- mix
   if page == 1 then
-    if n == 2 then
-      if muted_L == 0 then
-        params:delta("1vol", d)
+    if alt == 1 then
+      if n == 2 then
+        params:delta("1pan", d)
+      elseif n == 3 then
+        params:delta("2pan", d)
       end
-    elseif n == 3 then
-      if muted_R == 0 then
-        params:delta("2vol", d)
+    else
+      if n == 2 then
+        if muted_L == 0 then
+          params:delta("1vol", d)
+        end
+      elseif n == 3 then
+        if muted_R == 0 then
+          params:delta("2vol", d)
+        end
       end
     end
-  --play
+  -- play
   elseif page == 2 then
     if alt == 1 then
       if n == 2 then
@@ -161,9 +174,9 @@ function enc(n, d)
   -- edit
     if alt == 1 then
       if n == 2 then
-        params:delta("1pan", d)
+        params:set("skip_controls", util.clamp(params:get("skip_controls") + d, 1, 2))
       elseif n == 3 then
-        params:delta("2pan", d)
+        params:set("speed_controls", util.clamp(params:get("skip_controls") + d, 1, 2))
       end
     else
       if n == 2 then
@@ -271,12 +284,17 @@ end
 
 local function draw_page_mix()
   -- screen drawing for the mix page
-  screen.level(15)
-  screen.move(64, 23)
+  screen.level(alt == 1 and 3 or 15)
+  screen.move(64, 15)
   screen.text_center("volume L : " .. string.format("%.2f", params:get("1vol")))
-  screen.move(64, 31)
+  screen.move(64, 23)
   screen.text_center("volume R : " .. string.format("%.2f", params:get("2vol")))
-  
+  screen.level(alt == 1 and 15 or 3)
+  screen.move(64, 31)
+  screen.text_center("pan L : " .. string.format("%.2f", params:get("1pan")))
+  screen.move(64, 39)
+  screen.text_center("pan R : " .. string.format("%.2f", params:get("2pan")))
+
   screen.level(muted_L == 0 and 3 or 15)
   screen.move(5, 52)
   screen.text("mute L")
@@ -295,21 +313,21 @@ local function draw_page_play()
   screen.text_center("speed R : " .. string.format("%.2f", math.abs(params:get("2speed"))))
   screen.level(alt == 1 and 15 or 3)
   screen.move(64, 31)
-  screen.text_center("fdbk L : " .. string.format("%.2f", params:get("1feedback")))
+  screen.text_center("feedback L : " .. string.format("%.2f", params:get("1feedback")))
   screen.move(64, 39)
-  screen.text_center("fdbk R : " .. string.format("%.2f", params:get("2feedback")))
+  screen.text_center("feedback R : " .. string.format("%.2f", params:get("2feedback")))
 
   screen.move(34, 16)
-  screen.level(params:get("1speed") < 0 and 15 or 3)
+  screen.level(params:get("1speed") < 0 and 15 or 0)
   draw_left()
   screen.move(34, 24)
-  screen.level(params:get("2speed") < 0 and 15 or 3)
+  screen.level(params:get("2speed") < 0 and 15 or 0)
   draw_left()
   screen.move(96, 16)
-  screen.level(params:get("1speed") > 0 and 15 or 3)
+  screen.level(params:get("1speed") > 0 and 15 or 0)
   draw_right()
   screen.move(96, 24)
-  screen.level(params:get("2speed") > 0 and 15 or 3)
+  screen.level(params:get("2speed") > 0 and 15 or 0)
   draw_right()
 
   screen.level(alt == 1 and 3 or 15)
@@ -322,13 +340,13 @@ local function draw_page_play()
   screen.text("skip")
   screen.move(122, 60)
   screen.text_right("skip")
-  
-  if util.time() - skip_time_L < .2 then
+
+  if util.time() - skip_time_L < .15 then
     screen.move(18, 40)
     draw_skip()
   end
-  
-  if util.time() - skip_time_R < .2 then
+
+  if util.time() - skip_time_R < .15 then
     screen.move(120, 40)
     draw_skip()
   end
@@ -344,9 +362,9 @@ local function draw_page_edit()
   screen.text_center("tape len R : " .. string.format("%.2f", params:get("2tape_len")))
   screen.level(alt == 1 and 15 or 3)
   screen.move(64, 31)
-  screen.text_center("panning L : " .. string.format("%.2f", params:get("1pan")))
+  screen.text_center("skip controls : " .. skip_options[params:get("skip_controls")])
   screen.move(64, 39)
-  screen.text_center("panning R : " .. string.format("%.2f", params:get("2pan")))
+  screen.text_center("spd controls : " .. speed_options[params:get("speed_controls")])
 
   screen.level(alt == 1 and 3 or 15)
   screen.move(5, 52)
@@ -366,18 +384,16 @@ function redraw()
   screen.aa(0)
   screen.font_face(25)
   screen.font_size(6)
-  screen.move(5, 5)
+  screen.move(30 * page, 5)
   -- current page indication
-  if util.time() - page_time < 1 then
+  if util.time() - page_time < 1.1 then
     screen.text(pages[page])
   end
-  
+
   if page == 1 then
     draw_page_mix()
-
   elseif page == 2 then
     draw_page_play()
-
   elseif page == 3 then
     draw_page_edit()
   end

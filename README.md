@@ -36,8 +36,8 @@ _skip behavior by default is a loop reset; however, it can be configured to jump
 
 ### _edit_
 
-* key 2 = rec on/off L
-* key 3 rec on/off R
+* key 2 = rec L on/off
+* key 3 rec R on/off
 * ALT + key 2 = clear buffer L
 * ALT + key 3 = clear buffer R
 

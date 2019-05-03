@@ -1,5 +1,5 @@
 
-# otis v0.4
+# otis v0.5
 
 stereo "tape" delay/looper thing for norns 2.0
 

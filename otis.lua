@@ -282,6 +282,11 @@ local function draw_skip()
 end
 
 
+local function draw_skip_rand()
+  screen.text("???")
+end
+
+
 local function draw_page_mix()
   -- screen drawing for the mix page
   screen.level(alt == 1 and 3 or 15)
@@ -342,13 +347,23 @@ local function draw_page_play()
   screen.text_right("skip")
 
   if util.time() - skip_time_L < .15 then
-    screen.move(18, 40)
-    draw_skip()
+    if params:get("skip_controls") == 1 then
+      screen.move(18, 40)
+      draw_skip()
+    else
+      screen.move(7, 40)
+      draw_skip_rand()
+    end
   end
 
   if util.time() - skip_time_R < .15 then
-    screen.move(120, 40)
-    draw_skip()
+    if params:get("skip_controls") == 1 then
+      screen.move(120, 40)
+      draw_skip()
+    else
+      screen.move(109, 40)
+      draw_skip_rand()
+    end
   end
 end
 

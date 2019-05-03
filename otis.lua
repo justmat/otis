@@ -60,6 +60,8 @@
 -- ----------
 --
 -- v0.4 by @justmat
+--
+-- https://llllllll.co/t/22149
 
 
 local sc = include("lib/tlps")

@@ -108,10 +108,14 @@ local function speed_control(n, d)
     params:delta(n - 1 .. "speed", d / 2)
   else
     -- quantized to octaves
-    if d < 0 then
-      params:set(n - 1 .. "speed", params:get(n - 1 .. "speed") / 2)
+    if params:get(n - 1 .. "speed") == 0 then
+      params:set(n - 1 .. "speed", d < 0 and -0.05 or 0.05)
     else
-      params:set(n - 1 .. "speed", params:get(n - 1 .."speed") * 2)
+      if d < 0 then
+        params:set(n - 1 .. "speed", params:get(n - 1 .. "speed") / 2)
+      else
+        params:set(n - 1 .. "speed", params:get(n - 1 .."speed") * 2)
+      end
     end
   end
 end

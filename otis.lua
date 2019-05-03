@@ -105,11 +105,11 @@ end
 local function speed_control(n, d)
   -- free controls
   if params:get("speed_controls") == 1 then
-    params:delta(n - 1 .. "speed", d / 2)
+    params:delta(n - 1 .. "speed", d / 7.5)
   else
     -- quantized to octaves
     if params:get(n - 1 .. "speed") == 0 then
-      params:set(n - 1 .. "speed", d < 0 and -0.05 or 0.05)
+      params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
     else
       if d < 0 then
         params:set(n - 1 .. "speed", params:get(n - 1 .. "speed") / 2)

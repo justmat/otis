@@ -34,10 +34,6 @@ function sc.init()
   audio.level_cut(1.0)
   audio.level_adc_cut(.5)
   audio.level_eng_cut(0)
-  --[[softcut.level_input_cut(1, 1, 1)
-  softcut.level_input_cut(2, 1, 0)
-  softcut.level_input_cut(1, 2, 0)
-  softcut.level_input_cut(2, 2, 1)]]
 
   for i = 1, 2 do
     softcut.enable(i, 1)

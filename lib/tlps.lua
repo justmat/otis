@@ -1,17 +1,43 @@
 -- softcut setup for otis
 --
--- v0.1
+-- v0.2
 
 sc = {}
+
+
+function sc.stereo()
+  softcut.level_input_cut(1, 1, 1)
+  softcut.level_input_cut(2, 1, 0)
+  softcut.level_input_cut(1, 2, 0)
+  softcut.level_input_cut(2, 2, 1)
+end
+
+
+function sc.mono()
+  softcut.level_input_cut(1, 1, 1)
+  softcut.level_input_cut(2, 1, 0)
+  softcut.level_input_cut(1, 2, 1)
+  softcut.level_input_cut(2, 2, 0)
+end
+
+
+function sc.set_input(n)
+  if n == 1 then
+    sc.stereo()
+  else
+    sc.mono()
+  end
+end
+
 
 function sc.init()
   audio.level_cut(1.0)
   audio.level_adc_cut(.5)
   audio.level_eng_cut(0)
-  softcut.level_input_cut(1, 1, 1)
+  --[[softcut.level_input_cut(1, 1, 1)
   softcut.level_input_cut(2, 1, 0)
   softcut.level_input_cut(1, 2, 0)
-  softcut.level_input_cut(2, 2, 1)
+  softcut.level_input_cut(2, 2, 1)]]
 
   for i = 1, 2 do
     softcut.enable(i, 1)
@@ -46,6 +72,9 @@ function sc.init()
 
   end
 
+  -- set input
+  params:add_option("input", "input", {"stereo", "mono (L)"}, 1)
+  params:set_action("input", function(x) sc.set_input(x) end)
   -- input level
   params:add_control("input_level", "input level", controlspec.new(0, 1, "lin", 0, .75))
   params:set_action("input_level", function(x) audio.level_adc_cut(x) end)

@@ -9,7 +9,6 @@
 local number_of_outputs = 4
 
 local tau = math.pi * 2
---local slewer = 50
 
 local options = {
   lfotypes = {

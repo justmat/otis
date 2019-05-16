@@ -29,8 +29,6 @@ for i = 1, number_of_outputs do
     counter = 1,
     waveform = 1,
     slope = 0,
-    min_val = 0,
-    max_val = 100
   }
 end
 

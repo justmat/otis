@@ -1,11 +1,14 @@
 -- softcut setup for otis
 --
--- v0.2
+-- two loops
+--
+-- v0.2 @justmat
 
 sc = {}
 
 
 function sc.stereo()
+  -- set softcut to stereo inputs
   softcut.level_input_cut(1, 1, 1)
   softcut.level_input_cut(2, 1, 0)
   softcut.level_input_cut(1, 2, 0)
@@ -14,6 +17,7 @@ end
 
 
 function sc.mono()
+  --set softcut to mono input
   softcut.level_input_cut(1, 1, 1)
   softcut.level_input_cut(2, 1, 0)
   softcut.level_input_cut(1, 2, 1)
@@ -68,7 +72,7 @@ function sc.init()
 
   end
 
-  -- set input
+  -- input
   params:add_option("input", "input", {"stereo", "mono (L)"}, 1)
   params:set_action("input", function(x) sc.set_input(x) end)
   -- input level
@@ -91,13 +95,13 @@ function sc.init()
     params:add_control(i .. "speed_slew", i .. " speed slew", controlspec.new(0, 1, "lin", 0, 0.1, ""))
     params:set_action(i .. "speed_slew", function(x) softcut.rate_slew_time(i, x) end)
     -- tape length controls
-    params:add_control(i .. "tape_len", i .. " tape length", controlspec.new(.5, 16, "lin", 0, 2, "secs"))
+    params:add_control(i .. "tape_len", i .. " tape length", controlspec.new(.25, 16, "lin", .01, 2, "secs"))
     params:set_action(i .. "tape_len", function(x) softcut.loop_end(i, x) end)
     -- feedback controls
     params:add_control(i .. "feedback", i .. " feedback", controlspec.new(0, 1, "lin", 0, .75, ""))
     params:set_action(i .. "feedback", function(x) softcut.pre_level(i, x) end)
     -- pan controls
-    params:add_control(i .. "pan", i .. " pan", controlspec.new(0, 1, "lin", 0, i == 1 and .7 or .3, ""))
+    params:add_control(i .. "pan", i .. " pan", controlspec.new(0.0, 1.0, "lin", 0.01, i == 1 and .7 or .3, ""))
     params:set_action(i .. "pan", function(x) softcut.pan(i, x) end)
 
     params:add_separator()

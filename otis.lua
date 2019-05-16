@@ -59,37 +59,60 @@
 --
 -- ----------
 --
--- v0.6 by @justmat
+-- v0.7 by @justmat
 --
 -- https://llllllll.co/t/22149
 
 
 local sc = include("lib/tlps")
+local lfo = include("lib/hnds")
+
 
 local alt = 0
 local page = 2
 local page_time = 1
 local skip_time_L = 1
 local skip_time_R = 1
-local muted_L = 0
+local muted_L = false
 local pre_mute_vol_L = 0
-local muted_R = 0
+local muted_R = false
 local pre_mute_vol_R = 0
 local rec1 = true
 local rec2 = true
+local flipped_L = false
+local flipped_R = false
+local skipped_L = false
+local skipped_R = false
+local speed = 1
+
 
 local pages = {"mix", "play", "edit"}
 local skip_options = {"start", "???"}
 local speed_options = {"free", "octaves"}
 
+-- for lib/hnds
+local lfo_targets = {
+  "none",
+  "1pan",
+  "2pan",
+  "1vol",
+  "2vol",
+  "rec L",
+  "rec R",
+  "flip L",
+  "flip R",
+  "skip L",
+  "skip R"
+}
+
 
 local function skip(n)
-  -- reset loop to start, or random position
+  -- reset loop to start, or jump to a random position
   if params:get("skip_controls") == 1 then
     softcut.position(n, 0)
   else
-    local length = params:get(n .. "tape_len") + 0.5
-    softcut.position(n, math.random(math.floor(length)))
+    local length = params:get(n .. "tape_len")
+    softcut.position(n, lfo.scale(math.random(), 0.0, 1.0, 0.25, length))
   end
 end
 
@@ -121,11 +144,84 @@ local function speed_control(n, d)
 end
 
 
+-- for lib/hnds
+function lfo.process()
+  for i = 1, 4 do
+    local target = params:get(i .. "lfo_target")
+    if params:get(i .. "lfo") == 2 then
+      -- left/right panning and volume
+      if target > 1 and target < 6 then
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1.0, 1.0, params:get(i .. "lfo_min"), params:get(i .. "lfo_max")) * 0.01)
+      -- record L on/off
+      elseif target == 6 then
+        if lfo[i].slope > 0 then
+          if not rec1 then
+            rec1 = true
+            softcut.rec(1, 1)
+          end
+        else
+          rec1 = false
+          softcut.rec(1, 0)
+        end
+      -- record R on/off
+      elseif target == 7 then
+        if lfo[i].slope > 0 then
+          if not rec2 then
+            rec2 = true
+            softcut.rec(2, 1)
+          end
+        else
+          rec2 = false
+          softcut.rec(2, 0)
+        end
+      -- flip L
+      elseif target == 8 then
+        if lfo[i].slope > 0 then
+          if not flipped_L then
+            flip(1)
+            flipped_L = true
+          end
+        else flipped_L = false end
+      -- flip R
+      elseif target == 9 then
+        if lfo[i].slope > 0 then
+          if not flipped_R then
+            flip(2)
+            flipped_R = true
+          end
+        else flipped_R = false end
+      -- skip L
+      elseif target == 10 then
+        if lfo[i].slope > 0 then
+          if not skipped_L then
+            skip(1)
+            skipped_L = true
+          end
+        else skipped_L = false end
+      -- skip R
+      elseif target == 11 then
+        if lfo[i].slope > 0 then
+          if not skipped_R then
+            skip(2)
+            skipped_R = true
+          end
+        else skipped_R = false end
+      end
+    end
+  end
+end
+
+
 function init()
   sc.init()
 
   params:add_option("skip_controls", "skip controls", skip_options, 1)
   params:add_option("speed_controls", "speed controls", speed_options, 1)
+  -- for lib/hnds
+  for i = 1, 4 do
+    lfo[i].lfo_targets = lfo_targets
+  end
+  lfo.init()
 
   params:bang()
   softcut.buffer_clear()
@@ -136,8 +232,8 @@ function init()
   screen_metro:start()
 end
 
--- norns controls
 
+-- norns controls
 function enc(n, d)
   -- navigation
   if n == 1 then
@@ -154,11 +250,11 @@ function enc(n, d)
       end
     else
       if n == 2 then
-        if muted_L == 0 then
+        if not muted_L then
           params:delta("1vol", d)
         end
       elseif n == 3 then
-        if muted_R == 0 then
+        if not muted_R then
           params:delta("2vol", d)
         end
       end
@@ -200,25 +296,25 @@ function key(n, z)
   -- mix
   if page == 1 then
     if n == 2 and z == 1 then
-      if muted_L == 0 then
+      if not muted_L then
         pre_mute_vol_L = params:get("1vol")
         softcut.level(1, 0)
-        muted_L = 1
+        muted_L = true
       else
         softcut.level(1, pre_mute_vol_L)
-        muted_L = 0
+        muted_L = false
       end
     elseif n == 3 and z == 1 then
-      if muted_R == 0 then
+      if not muted_R then
         pre_mute_vol_R = params:get("2vol")
         softcut.level(2, 0)
-        muted_R = 1
+        muted_R = true
       else
         softcut.level(2, pre_mute_vol_R)
-        muted_R = 0
+        muted_R = false
       end
     end
-  -- play 
+  -- play
   elseif page == 2 then
     if alt == 1 then
       if n == 2 and z == 1 then
@@ -306,10 +402,10 @@ local function draw_page_mix()
   screen.move(64, 39)
   screen.text_center("pan R : " .. string.format("%.2f", params:get("2pan")))
 
-  screen.level(muted_L == 0 and 3 or 15)
+  screen.level(muted_L == false and 3 or 15)
   screen.move(5, 52)
   screen.text("mute L")
-  screen.level(muted_R == 0 and 3 or 15)
+  screen.level(muted_R == false and 3 or 15)
   screen.move(122, 52)
   screen.text_right("mute R")
 end

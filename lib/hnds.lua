@@ -97,7 +97,7 @@ function lfo.init()
   lfo_metro.time = .01
   lfo_metro.count = -1
   lfo_metro.event = function()
-    for i = 1, 4 do
+    for i = 1, number_of_outputs do
       lfo[i].prev = lfo[i].slope
       if params:get(i .. "lfo") == 1 then
         break

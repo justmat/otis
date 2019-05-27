@@ -67,7 +67,6 @@
 local sc = include("lib/tlps")
 local lfo = include("lib/hnds")
 
-
 local alt = 0
 local page = 2
 local page_time = 1
@@ -97,6 +96,8 @@ local lfo_targets = {
   "2pan",
   "1vol",
   "2vol",
+  "1feedback",
+  "2feedback",
   "rec L",
   "rec R",
   "flip L",
@@ -149,11 +150,11 @@ function lfo.process()
   for i = 1, 4 do
     local target = params:get(i .. "lfo_target")
     if params:get(i .. "lfo") == 2 then
-      -- left/right panning and volume
-      if target > 1 and target < 6 then
+      -- left/right panning, volume, and feedback
+      if target > 1 and target < 8 then
         params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1.0, 1.0, params:get(i .. "lfo_min"), params:get(i .. "lfo_max")) * 0.01)
       -- record L on/off
-      elseif target == 6 then
+      elseif target == 8 then
         if lfo[i].slope > 0 then
           if not rec1 then
             rec1 = true
@@ -164,7 +165,7 @@ function lfo.process()
           softcut.rec(1, 0)
         end
       -- record R on/off
-      elseif target == 7 then
+      elseif target == 9 then
         if lfo[i].slope > 0 then
           if not rec2 then
             rec2 = true
@@ -175,7 +176,7 @@ function lfo.process()
           softcut.rec(2, 0)
         end
       -- flip L
-      elseif target == 8 then
+      elseif target == 10 then
         if lfo[i].slope > 0 then
           if not flipped_L then
             flip(1)
@@ -183,7 +184,7 @@ function lfo.process()
           end
         else flipped_L = false end
       -- flip R
-      elseif target == 9 then
+      elseif target == 11 then
         if lfo[i].slope > 0 then
           if not flipped_R then
             flip(2)
@@ -191,7 +192,7 @@ function lfo.process()
           end
         else flipped_R = false end
       -- skip L
-      elseif target == 10 then
+      elseif target == 12 then
         if lfo[i].slope > 0 then
           if not skipped_L then
             skip(1)
@@ -199,7 +200,7 @@ function lfo.process()
           end
         else skipped_L = false end
       -- skip R
-      elseif target == 11 then
+      elseif target == 13 then
         if lfo[i].slope > 0 then
           if not skipped_R then
             skip(2)

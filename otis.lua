@@ -59,7 +59,7 @@
 --
 -- ----------
 --
--- v0.7 by @justmat
+-- v0.8 by @justmat
 --
 -- https://llllllll.co/t/22149
 
@@ -82,8 +82,6 @@ local flipped_L = false
 local flipped_R = false
 local skipped_L = false
 local skipped_R = false
-local speed = 1
-
 
 local pages = {"mix", "play", "edit"}
 local skip_options = {"start", "???"}
@@ -98,6 +96,8 @@ local lfo_targets = {
   "2vol",
   "1feedback",
   "2feedback",
+  "1speed",
+  "2speed",
   "rec L",
   "rec R",
   "flip L",
@@ -147,14 +147,21 @@ end
 
 -- for lib/hnds
 function lfo.process()
+
   for i = 1, 4 do
+
+    local offset = params:get(i .. "offset")
     local target = params:get(i .. "lfo_target")
+
     if params:get(i .. "lfo") == 2 then
       -- left/right panning, volume, and feedback
-      if target > 1 and target < 8 then
+      if target > 1 and target <= 7 then
         params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1.0, 1.0, params:get(i .. "lfo_min"), params:get(i .. "lfo_max")) * 0.01)
+      -- speed mod
+      elseif target == 8 or target == 9 then
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1.0, 1.0, params:get(i .. "lfo_min") + offset, params:get(i .. "lfo_max") + offset) * 0.01)
       -- record L on/off
-      elseif target == 8 then
+      elseif target == 10 then
         if lfo[i].slope > 0 then
           if not rec1 then
             rec1 = true
@@ -165,7 +172,7 @@ function lfo.process()
           softcut.rec(1, 0)
         end
       -- record R on/off
-      elseif target == 9 then
+      elseif target == 11 then
         if lfo[i].slope > 0 then
           if not rec2 then
             rec2 = true
@@ -176,7 +183,7 @@ function lfo.process()
           softcut.rec(2, 0)
         end
       -- flip L
-      elseif target == 10 then
+      elseif target == 12 then
         if lfo[i].slope > 0 then
           if not flipped_L then
             flip(1)
@@ -184,7 +191,7 @@ function lfo.process()
           end
         else flipped_L = false end
       -- flip R
-      elseif target == 11 then
+      elseif target == 13 then
         if lfo[i].slope > 0 then
           if not flipped_R then
             flip(2)
@@ -192,7 +199,7 @@ function lfo.process()
           end
         else flipped_R = false end
       -- skip L
-      elseif target == 12 then
+      elseif target == 14 then
         if lfo[i].slope > 0 then
           if not skipped_L then
             skip(1)
@@ -200,7 +207,7 @@ function lfo.process()
           end
         else skipped_L = false end
       -- skip R
-      elseif target == 13 then
+      elseif target == 15 then
         if lfo[i].slope > 0 then
           if not skipped_R then
             skip(2)
@@ -234,59 +241,134 @@ function init()
 end
 
 
--- norns controls
+-- norns controls --
+
+local function mix_enc(n, d)
+  if alt == 1 then
+      if n == 2 then
+        params:delta("1pan", d)
+      elseif n == 3 then
+        params:delta("2pan", d)
+      end
+  else
+    if n == 2 then
+      if not muted_L then
+        params:delta("1vol", d)
+      end
+    elseif n == 3 then
+      if not muted_R then
+        params:delta("2vol", d)
+      end
+    end
+  end
+end
+
+
+local function play_enc(n, d)
+  if alt == 1 then
+    if n == 2 then
+      params:delta("1feedback", d)
+    elseif n == 3 then
+      params:delta("2feedback", d)
+    end
+  else
+    if n == 2 or n == 3 then
+      speed_control(n, d)
+    end
+  end
+end
+
+
+local function edit_enc(n, d)
+  if alt == 1 then
+    if n == 2 then
+      params:set("skip_controls", util.clamp(params:get("skip_controls") + d, 1, 2))
+    elseif n == 3 then
+      params:set("speed_controls", util.clamp(params:get("skip_controls") + d, 1, 2))
+    end
+  else
+    if n == 2 then
+      params:delta("1tape_len", d)
+    elseif n == 3 then
+      params:delta("2tape_len", d)
+    end
+  end
+end
+
+
 function enc(n, d)
   -- navigation
   if n == 1 then
     page = util.clamp(page + d, 1, 3)
     page_time = util.time()
   end
-  -- mix
+  -- interface pages
   if page == 1 then
-    if alt == 1 then
-      if n == 2 then
-        params:delta("1pan", d)
-      elseif n == 3 then
-        params:delta("2pan", d)
-      end
-    else
-      if n == 2 then
-        if not muted_L then
-          params:delta("1vol", d)
-        end
-      elseif n == 3 then
-        if not muted_R then
-          params:delta("2vol", d)
-        end
-      end
-    end
-  -- play
+    mix_enc(n,d)
   elseif page == 2 then
-    if alt == 1 then
-      if n == 2 then
-        params:delta("1feedback", d)
-      elseif n == 3 then
-        params:delta("2feedback", d)
-      end
-    else
-      if n == 2 or n == 3 then
-        speed_control(n, d)
-      end
-    end
+    play_enc(n, d)
   elseif page == 3 then
-  -- edit
-    if alt == 1 then
-      if n == 2 then
-        params:set("skip_controls", util.clamp(params:get("skip_controls") + d, 1, 2))
-      elseif n == 3 then
-        params:set("speed_controls", util.clamp(params:get("skip_controls") + d, 1, 2))
-      end
+    edit_enc(n, d)
+  end
+end
+
+
+local function mix_key(n, z)
+  if n == 2 and z == 1 then
+    if not muted_L then
+      pre_mute_vol_L = params:get("1vol")
+      softcut.level(1, 0)
+      muted_L = true
     else
-      if n == 2 then
-        params:delta("1tape_len", d)
-      elseif n == 3 then
-        params:delta("2tape_len", d)
-      end
+      softcut.level(1, pre_mute_vol_L)
+      muted_L = false
+    end
+  elseif n == 3 and z == 1 then
+    if not muted_R then
+      pre_mute_vol_R = params:get("2vol")
+      softcut.level(2, 0)
+      muted_R = true
+    else
+      softcut.level(2, pre_mute_vol_R)
+      muted_R = false
+    end
+  end
+end
+
+
+local function play_key(n, z)
+  if alt == 1 then
+    if n == 2 and z == 1 then
+      skip(1)
+      skip_time_L = util.time()
+    elseif n == 3 and z ==1 then
+      skip(2)
+      skip_time_R = util.time()
+    end
+  else
+    if n == 2 and z == 1 then
+      flip(1)
+    elseif n == 3 and z == 1 then
+      flip(2)
+    end
+  end
+end
+
+
+local function edit_key(n, z)
+  if alt == 1 then
+    if n == 2 and z == 1 then
+      softcut.buffer_clear_channel(1)
+    elseif n == 3 and z == 1 then
+      softcut.buffer_clear_channel(2)
+    end
+  else
+    if n == 2 and z == 1 then
+      softcut.rec(1, rec1 == true and 0 or 1)
+      rec1 = not rec1
+    elseif n == 3 and z == 1 then
+      softcut.rec(2, rec2 == true and 0 or 1)
+      rec2 = not rec2
     end
   end
 end
@@ -296,59 +378,13 @@ function key(n, z)
   if n == 1 then alt = z end
   -- mix
   if page == 1 then
-    if n == 2 and z == 1 then
-      if not muted_L then
-        pre_mute_vol_L = params:get("1vol")
-        softcut.level(1, 0)
-        muted_L = true
-      else
-        softcut.level(1, pre_mute_vol_L)
-        muted_L = false
-      end
-    elseif n == 3 and z == 1 then
-      if not muted_R then
-        pre_mute_vol_R = params:get("2vol")
-        softcut.level(2, 0)
-        muted_R = true
-      else
-        softcut.level(2, pre_mute_vol_R)
-        muted_R = false
-      end
-    end
+    mix_key(n, z)
   -- play
   elseif page == 2 then
-    if alt == 1 then
-      if n == 2 and z == 1 then
-        skip(1)
-        skip_time_L = util.time()
-      elseif n == 3 and z ==1 then
-        skip(2)
-        skip_time_R = util.time()
-      end
-    else
-      if n == 2 and z == 1 then
-        flip(1)
-      elseif n == 3 and z == 1 then
-        flip(2)
-      end
-    end
+    play_key(n, z)
   elseif page == 3 then
   -- edit
-    if alt == 1 then
-      if n == 2 and z == 1 then
-        softcut.buffer_clear_channel(1)
-      elseif n == 3 and z == 1 then
-        softcut.buffer_clear_channel(2)
-      end
-    else
-      if n == 2 and z == 1 then
-        softcut.rec(1, rec1 == true and 0 or 1)
-        rec1 = not rec1
-      elseif n == 3 and z == 1 then
-        softcut.rec(2, rec2 == true and 0 or 1)
-        rec2 = not rec2
-      end
-    end
+    edit_key(n, z)
   end
 end
 
@@ -504,7 +540,11 @@ function redraw()
   screen.font_size(6)
   screen.move(30 * page, 5)
   -- current page indication
-  if util.time() - page_time < 1.1 then
+  if util.time() - page_time < .6 then
+    screen.level(15)
+    screen.text(pages[page])
+  else
+    screen.level(1)
     screen.text(pages[page])
   end
 

@@ -48,13 +48,14 @@ function sc.init()
     softcut.play(i, 1)
 
     softcut.position(i, 1)
-    softcut.fade_time(i, 0.1)
+    softcut.fade_time(i, 0.25)
 
     softcut.loop(i, 1)
     softcut.loop_start(i, 0)
     softcut.loop_end(i, 16)
 
     softcut.rec(i, 1)
+    softcut.rec_offset(i, -0.06)
     softcut.rec_level(i, 1)
     softcut.pre_level(i, .75)
 

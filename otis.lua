@@ -110,10 +110,10 @@ local lfo_targets = {
 local function skip(n)
   -- reset loop to start, or jump to a random position
   if params:get("skip_controls") == 1 then
-    softcut.position(n, 0)
+    softcut.position(n, params:get(n .. "loop_start"))
   else
     local length = params:get(n .. "tape_len")
-    softcut.position(n, lfo.scale(math.random(), 0.0, 1.0, 0.25, length))
+    softcut.position(n, lfo.scale(math.random(), params:get(n .. "loop_start"), 1.0, 0.25, length))
   end
 end
 
@@ -282,15 +282,15 @@ end
 local function edit_enc(n, d)
   if alt == 1 then
     if n == 2 then
-      params:set("skip_controls", util.clamp(params:get("skip_controls") + d, 1, 2))
+      params:delta("1loop_end", d)
     elseif n == 3 then
-      params:set("speed_controls", util.clamp(params:get("skip_controls") + d, 1, 2))
+      params:delta("2loop_end", d)
     end
   else
     if n == 2 then
-      params:delta("1tape_len", d)
+      params:delta("1loop_start", d)
     elseif n == 3 then
-      params:delta("2tape_len", d)
+      params:delta("2loop_start", d)
     end
   end
 end
@@ -511,14 +511,14 @@ local function draw_page_edit()
   -- screen drawing for edit page
   screen.level(alt == 1 and 3 or 15)
   screen.move(64, 15)
-  screen.text_center("tape len L : " .. string.format("%.2f", params:get("1tape_len")))
+  screen.text_center("loop start L : " .. string.format("%.2f", params:get("1loop_start")))
   screen.move(64, 23)
-  screen.text_center("tape len R : " .. string.format("%.2f", params:get("2tape_len")))
+  screen.text_center("loop start R : " .. string.format("%.2f", params:get("2loop_start")))
   screen.level(alt == 1 and 15 or 3)
   screen.move(64, 31)
-  screen.text_center("skip controls : " .. skip_options[params:get("skip_controls")])
+  screen.text_center("loop end L : " .. string.format("%.2f", params:get("1loop_end")))
   screen.move(64, 39)
-  screen.text_center("spd controls : " .. speed_options[params:get("speed_controls")])
+  screen.text_center("loop end R : " .. string.format("%.2f", params:get("2loop_end")))
 
   screen.level(alt == 1 and 3 or 15)
   screen.move(5, 52)

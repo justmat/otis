@@ -34,6 +34,13 @@ function sc.set_input(n)
 end
 
 
+local function set_loop_start(i, v)
+  v = util.clamp(v, 0, params:get(i .. "loop_len") - .01)
+  params:set(i .. "loop_start", v)
+  softcut.loop_start(i, v)
+end
+
+
 function sc.init()
   audio.level_cut(1.0)
   audio.level_adc_cut(1)
@@ -96,11 +103,11 @@ function sc.init()
     params:add_control(i .. "speed_slew", i .. " speed slew", controlspec.new(0, 1, "lin", 0, 0.1, ""))
     params:set_action(i .. "speed_slew", function(x) softcut.rate_slew_time(i, x) end)
     -- tape start controls
-    params:add_control(i .. "tape_start", i .. " tape start", controlspec.new(0.0, 15.9, "lin", .01, 0, "secs"))
-    params:set_action(i .. "tape_start", function(x) softcut.loop_start(i, x) end)
+    params:add_control(i .. "loop_start", i .. " loop start", controlspec.new(0.0, 15.9, "lin", .01, 0, "secs"))
+    params:set_action(i .. "loop_start", function(x) set_loop_start(i, x) end)
     -- tape length controls
-    params:add_control(i .. "tape_len", i .. " tape length", controlspec.new(.25, 16, "lin", .01, 2, "secs"))
-    params:set_action(i .. "tape_len", function(x) softcut.loop_end(i, x) end)
+    params:add_control(i .. "loop_end", i .. " loop end", controlspec.new(.25, 16, "lin", .01, 2, "secs"))
+    params:set_action(i .. "loop_end", function(x) softcut.loop_end(i, x) end)
     -- feedback controls
     params:add_control(i .. "feedback", i .. " feedback", controlspec.new(0, 1, "lin", 0, .75, ""))
     params:set_action(i .. "feedback", function(x) softcut.pre_level(i, x) end)

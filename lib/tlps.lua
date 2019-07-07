@@ -2,7 +2,7 @@
 --
 -- two loops
 --
--- v0.2 @justmat
+-- v0.3 @justmat
 
 sc = {}
 
@@ -59,7 +59,7 @@ function sc.init()
 
     softcut.loop(i, 1)
     softcut.loop_start(i, 0)
-    softcut.loop_end(i, 16)
+    softcut.loop_end(i, 60)
 
     softcut.rec(i, 1)
     softcut.rec_offset(i, -0.06)
@@ -103,10 +103,10 @@ function sc.init()
     params:add_control(i .. "speed_slew", i .. " speed slew", controlspec.new(0, 1, "lin", 0, 0.1, ""))
     params:set_action(i .. "speed_slew", function(x) softcut.rate_slew_time(i, x) end)
     -- tape start controls
-    params:add_control(i .. "loop_start", i .. " loop start", controlspec.new(0.0, 15.9, "lin", .01, 0, "secs"))
+    params:add_control(i .. "loop_start", i .. " loop start", controlspec.new(0.0, 59.99, "lin", .01, 0, "secs"))
     params:set_action(i .. "loop_start", function(x) set_loop_start(i, x) end)
     -- tape length controls
-    params:add_control(i .. "loop_end", i .. " loop end", controlspec.new(.25, 16, "lin", .01, 2, "secs"))
+    params:add_control(i .. "loop_end", i .. " loop end", controlspec.new(.25, 60, "lin", .01, 2, "secs"))
     params:set_action(i .. "loop_end", function(x) softcut.loop_end(i, x) end)
     -- feedback controls
     params:add_control(i .. "feedback", i .. " feedback", controlspec.new(0, 1, "lin", 0, .75, ""))

@@ -13,7 +13,8 @@ function sc.write_buffers()
     local id = string.match(os.clock(), "....$")
     local loop_start = params:get(i .. "loop_start")
     local loop_end = params:get(i .. "loop_end")
-    softcut.buffer_write_stereo("/home/we/dust/audio/tape/tlps." .. i .. ".".. id .. ".wav", loop_start, loop_end)
+    local file_path = "/home/we/dust/audio/tape/tlps." .. i .. "." .. id .. ".wav"
+    softcut.buffer_write_stereo(file_path, loop_start, loop_end)
   end
 end
 

@@ -11,7 +11,9 @@ function sc.write_buffers()
   -- saves L/R buffers as stereo files in /home/we/dust/audio/tape
   for i = 1, 2 do
     local id = string.format("%.4f", util.time())
-    softcut.buffer_write_stereo("/home/we/dust/audio/tape/tlps." .. i .. ".".. id .. ".wav", params:get(i .. "loop_start"), params:get(i .. "loop_end"))
+    local loop_start = params:get(i .. "loop_start")
+    local loop_end = params:get(i .. "loop_end")
+    softcut.buffer_write_stereo("/home/we/dust/audio/tape/tlps." .. i .. ".".. id .. ".wav", loop_start, loop_end)
   end
 end
 

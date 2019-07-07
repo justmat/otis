@@ -2,9 +2,18 @@
 --
 -- two loops
 --
--- v0.3 @justmat
+-- v0.4 @justmat
 
 sc = {}
+
+
+function sc.write_buffers()
+  -- saves L/R buffers as stereo files in /home/we/dust/audio/tape
+  for i = 1, 2 do
+    local id = string.format("%.4f", util.time())
+    softcut.buffer_write_stereo("/home/we/dust/audio/tape/tlps." .. i .. ".".. id .. ".wav", params:get(i .. "loop_start"), params:get(i .. "loop_end"))
+  end
+end
 
 
 function sc.stereo()
@@ -89,6 +98,12 @@ function sc.init()
   -- engine level
   params:add_control("engine_level", "engine level", controlspec.new(0, 1, "lin", 0, 0))
   params:set_action("engine_level", function(x) audio.level_eng_cut(x) end)
+
+  params:add_separator()
+
+  -- save buffer to disk
+  params:add_trigger("write_to_tape", "write buffers to tape")
+  params:set_action("write_to_tape", function() sc.write_buffers() end)
 
   params:add_separator()
 

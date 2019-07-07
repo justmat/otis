@@ -90,7 +90,7 @@ function lfo.init()
     -- lfo offset
     params:add_control(i .."offset", i .. " offset", controlspec.new(-400, 300, "lin", 5, 0, ""))
     -- lfo speed
-    params:add_control(i .. "lfo_freq", i .. " lfo freq", controlspec.new(0.001, 1.0, "lin", 0.001, math.random(100) * 0.001, ""))
+    params:add_control(i .. "lfo_freq", i .. " lfo freq", controlspec.new(0.001, 25.0, "lin", 0.001, math.random(100) * 0.001, ""))
     params:set_action(i .. "lfo_freq", function(value) lfo[i].freq = value end)
     -- lfo on/off
     params:add_option(i .. "lfo", i .. " lfo", {"off", "on"}, 1)

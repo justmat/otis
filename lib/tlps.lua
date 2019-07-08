@@ -9,8 +9,9 @@ sc = {}
 
 function sc.write_buffers()
   -- saves L/R buffers as stereo files in /home/we/dust/audio/tape
+  local id = string.match(os.clock(), "....$")
   for i = 1, 2 do
-    local id = string.match(os.clock(), "....$")
+    --local id = string.match(os.clock(), "....$")
     local loop_start = params:get(i .. "loop_start")
     local loop_end = params:get(i .. "loop_end")
     local file_path = "/home/we/dust/audio/tape/tlps." .. i .. "." .. id .. ".wav"

@@ -6,6 +6,7 @@
 
 sc = {}
 
+-- overwrite this in user script for custom paths
 sc.file_path = "/home/we/dust/audio/tape/tlps."
 
 function sc.write_buffers()

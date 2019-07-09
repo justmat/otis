@@ -6,6 +6,7 @@
 
 sc = {}
 
+sc.file_path = "/home/we/dust/audio/tape/tlps."
 
 function sc.write_buffers()
   -- saves L/R buffers as stereo files in /home/we/dust/audio/tape
@@ -14,8 +15,8 @@ function sc.write_buffers()
     --local id = string.match(os.clock(), "....$")
     local loop_start = params:get(i .. "loop_start")
     local loop_end = params:get(i .. "loop_end")
-    local file_path = "/home/we/dust/audio/tape/tlps." .. i .. "." .. id .. ".wav"
-    softcut.buffer_write_stereo(file_path, loop_start, loop_end)
+    local full_path = sc.file_path .. i .. "." .. id .. ".wav"
+    softcut.buffer_write_stereo(full_path, loop_start, loop_end)
   end
 end
 

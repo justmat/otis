@@ -65,6 +65,8 @@
 
 
 local sc = include("lib/tlps")
+sc.file_path = "/home/we/dust/audio/tape/otis."
+
 local lfo = include("lib/hnds")
 
 local alt = 0
@@ -222,9 +224,10 @@ end
 
 function init()
   sc.init()
-
+  
   params:add_option("skip_controls", "skip controls", skip_options, 1)
   params:add_option("speed_controls", "speed controls", speed_options, 1)
+  
   -- for lib/hnds
   for i = 1, 4 do
     lfo[i].lfo_targets = lfo_targets

@@ -64,6 +64,8 @@
 -- https://llllllll.co/t/22149
 
 
+engine.name = "Decimator"
+
 local sc = include("lib/tlps")
 sc.file_path = "/home/we/dust/audio/tape/otis."
 
@@ -223,6 +225,14 @@ end
 
 
 function init()
+  -- sample rate
+  params:add_control("sample_rate", "sample rate", controlspec.new(0, 48000, "lin", 10, 48000, ''))
+  params:set_action("sample_rate", function(x) engine.srate(x) end)
+  -- bit depth
+  params:add_control("bit_depth", "bit depth", controlspec.new(4, 31, "lin", 0, 31, ''))
+  params:set_action("bit_depth", function(x) engine.sdepth(x) end)
+  params:add_separator()
+
   sc.init()
   
   params:add_option("skip_controls", "skip controls", skip_options, 1)

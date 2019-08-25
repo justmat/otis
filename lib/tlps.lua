@@ -147,7 +147,7 @@ function sc.init()
     params:add_control(i .. "filter_q", i .. " filter q", controlspec.new(0.0005, 8.0, 'exp', 0, 5.0, ""))
     params:set_action(i .. "filter_q", function(x) softcut.post_filter_rq(i, x) softcut.pre_filter_rq(i, x) end)
     -- dry signal
-    params:add_control(i .. "dry_signal", i .. " dry signal", controlspec.new(0, 1, 'lin', 0, 0, ""))
+    params:add_control(i .. "dry_signal", i .. " dry signal", controlspec.new(0, 1, 'lin', 0, 1, ""))
     params:set_action(i .. "dry_signal", function(x) softcut.filter_dry(i, x) end)
     
     params:add_separator()

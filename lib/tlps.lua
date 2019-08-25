@@ -57,8 +57,8 @@ end
 
 function sc.init()
   audio.level_cut(1.0)
-  audio.level_adc_cut(1)
-  audio.level_eng_cut(0)
+  audio.level_adc_cut(0)
+  audio.level_eng_cut(1)
 
   for i = 1, 2 do
     softcut.enable(i, 1)

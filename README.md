@@ -1,7 +1,7 @@
 
 # otis v1
 
-stereo "tape" delay/looper thing for norns 2.0
+stereo "tape" delay/looper thing for norns 2.2
 
 _very much a work in progress_
 

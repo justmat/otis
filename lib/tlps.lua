@@ -98,10 +98,10 @@ function sc.init()
   params:add_option("input", "input", {"stereo", "mono (L)"}, 1)
   params:set_action("input", function(x) sc.set_input(x) end)
   -- input level
-  params:add_control("input_level", "input level", controlspec.new(0, 1, "lin", 0, .75))
+  params:add_control("input_level", "input level", controlspec.new(0, 1, "lin", 0, 0))
   params:set_action("input_level", function(x) audio.level_adc_cut(x) end)
   -- engine level
-  params:add_control("engine_level", "engine level", controlspec.new(0, 1, "lin", 0, 0))
+  params:add_control("engine_level", "engine level", controlspec.new(0, 1, "lin", 0, 1))
   params:set_action("engine_level", function(x) audio.level_eng_cut(x) end)
 
   params:add_separator()
@@ -132,8 +132,11 @@ function sc.init()
     params:add_control(i .. "feedback", i .. " feedback", controlspec.new(0, 1, "lin", 0, .75, ""))
     params:set_action(i .. "feedback", function(x) softcut.pre_level(i, x) end)
     -- pan controls
-    params:add_control(i .. "pan", i .. " pan", controlspec.new(0.0, 1.0, "lin", 0.01, i == 1 and .7 or .3, ""))
+    params:add_control(i .. "pan", i .. " pan", controlspec.new(-1.0, 1.0, "lin", 0.01, i == 1 and -.5 or .5, ""))
     params:set_action(i .. "pan", function(x) softcut.pan(i, x) end)
+    -- pan slew controls
+    params:add_control(i .. "pan_slew", i.. " pan slew", controlspec.new(0, 1, "lin", 0.01, 0, ""))
+    params:set_action(i .. "pan_slew", function(x) softcut.pan_slew_time(i, x) end)
     -- filter cut off
     params:add_control(i .. "filter_cutoff", i .. " filter cutoff", controlspec.new(10, 12000, 'exp', 1, 12000, "Hz"))
     params:set_action(i .. "filter_cutoff", function(x) softcut.post_filter_fc(i, x) softcut.pre_filter_fc(i, x) end)

@@ -158,8 +158,11 @@ function lfo.process()
     local target = params:get(i .. "lfo_target")
 
     if params:get(i .. "lfo") == 2 then
-      -- left/right panning, volume, and feedback
-      if target > 1 and target <= 7 then
+      -- left/right panning
+      if target > 1 and target <= 3 then
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1.0, 1.0, params:get(i .. "lfo_min") + offset, params:get(i .. "lfo_max") + offset) * 0.01)
+      -- volume, and feedback
+      elseif target > 3 and target <= 7 then
         params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1.0, 1.0, params:get(i .. "lfo_min"), params:get(i .. "lfo_max")) * 0.01)
       -- speed mod
       elseif target == 8 or target == 9 then

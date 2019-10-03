@@ -85,7 +85,7 @@ function lfo.init()
     params:add_number(i .. "lfo_max", i .. " lfo max", 1, 100, 100)
     params:set_action(i .. "lfo_max", function(value) lfo[i].max_val = value end)
     -- lfo min value
-    params:add_number(i .. "lfo_min", i .. " lfo min", 0, 99, 1)
+    params:add_number(i .. "lfo_min", i .. " lfo min", 0.0, 99, 1)
     params:set_action(i .. "lfo_min", function(value) set_lfo_min(i, value) end)
     -- lfo offset
     params:add_control(i .."offset", i .. " offset", controlspec.new(-400, 300, "lin", 5, 0, ""))

@@ -153,20 +153,18 @@ end
 function lfo.process()
 
   for i = 1, 4 do
-
-    local offset = params:get(i .. "offset")
     local target = params:get(i .. "lfo_target")
 
     if params:get(i .. "lfo") == 2 then
       -- left/right panning
       if target > 1 and target <= 3 then
-        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1.0, 1.0, params:get(i .. "lfo_min") + offset, params:get(i .. "lfo_max") + offset) * 0.01)
+        params:set(lfo_targets[target], lfo[i].slope)
       -- volume, and feedback
       elseif target > 3 and target <= 7 then
-        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1.0, 1.0, params:get(i .. "lfo_min"), params:get(i .. "lfo_max")) * 0.01)
+        params:set(lfo_targets[target], lfo[i].slope)
       -- speed mod
       elseif target == 8 or target == 9 then
-        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1.0, 1.0, params:get(i .. "lfo_min") + offset, params:get(i .. "lfo_max") + offset) * 0.01)
+        params:set(lfo_targets[target], lfo[i].slope)
       -- record L on/off
       elseif target == 10 then
         if lfo[i].slope > 0 then
@@ -237,10 +235,10 @@ function init()
   params:add_separator()
 
   sc.init()
-  
+
   params:add_option("skip_controls", "skip controls", skip_options, 1)
   params:add_option("speed_controls", "speed controls", speed_options, 1)
-  
+
   -- for lib/hnds
   for i = 1, 4 do
     lfo[i].lfo_targets = lfo_targets

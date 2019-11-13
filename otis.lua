@@ -156,14 +156,8 @@ function lfo.process()
     local target = params:get(i .. "lfo_target")
 
     if params:get(i .. "lfo") == 2 then
-      -- left/right panning
-      if target > 1 and target <= 3 then
-        params:set(lfo_targets[target], lfo[i].slope)
-      -- volume, and feedback
-      elseif target > 3 and target <= 7 then
-        params:set(lfo_targets[target], lfo[i].slope)
-      -- speed mod
-      elseif target == 8 or target == 9 then
+      -- left/right panning, volume, feedback, speed
+      if target > 1 and target <= 9 then
         params:set(lfo_targets[target], lfo[i].slope)
       -- record L on/off
       elseif target == 10 then
@@ -235,7 +229,6 @@ function init()
   params:add_separator()
 
   sc.init()
-
   params:add_option("skip_controls", "skip controls", skip_options, 1)
   params:add_option("speed_controls", "speed controls", speed_options, 1)
 

@@ -78,15 +78,15 @@ function lfo.init()
     -- lfo shape
     params:add_option(i .. "lfo_shape", i .. " lfo shape", options.lfotypes, 1)
     params:set_action(i .. "lfo_shape", function(value) lfo[i].waveform = options.lfotypes[value] end)
+    -- lfo depth
+    params:add_number(i .. "lfo_depth", i .. " lfo depth", 0, 100, 100)
+    params:set_action(i .. "lfo_depth", function(value) lfo[i].depth = value end)
     -- lfo offset
     params:add_control(i .."offset", i .. " offset", controlspec.new(-4.0, 3.0, "lin", 0.1, 0.0, ""))
     params:set_action(i .. "offset", function(value) lfo[i].offset = value end)
     -- lfo speed
     params:add_control(i .. "lfo_freq", i .. " lfo freq", controlspec.new(0.01, 25.0, "lin", 0.1, 0.05, ""))
     params:set_action(i .. "lfo_freq", function(value) lfo[i].freq = value end)
-    -- lfo depth
-    params:add_number(i .. "lfo_depth", i .. " lfo depth", 0, 100, 100)
-    params:set_action(i .. "lfo_depth", function(value) lfo[i].depth = value end)
     -- lfo on/off
     params:add_option(i .. "lfo", i .. " lfo", {"off", "on"}, 1)
   end

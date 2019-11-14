@@ -25,7 +25,7 @@ for i = 1, number_of_outputs do
     waveform = options.lfotypes[1],
     slope = 0,
     depth = 100,
-    offset = 0,
+    offset = 0
   }
 end
 
@@ -54,6 +54,12 @@ function lfo.scale(old_value, old_min, old_max, new_min, new_max)
 end
 
 
+local function set_lfo_min(i, v)
+  lfo[i].min_val = util.clamp(v, 0.0, params:get(i .. "lfo_max"))
+  params:set(i .."lfo_min", lfo[i].min_val)
+end
+
+
 local function make_sine(n)
   return 1 * math.sin(((tau / 100) * (lfo[n].counter)) - (tau / (lfo[n].freq)))
 end
@@ -73,8 +79,8 @@ function lfo.init()
     params:add_option(i .. "lfo_shape", i .. " lfo shape", options.lfotypes, 1)
     params:set_action(i .. "lfo_shape", function(value) lfo[i].waveform = options.lfotypes[value] end)
     -- lfo offset
-    params:add_control(i .."lfo_offset", i .. " lfo offset", controlspec.new(-400, 300, "lin", 5, 0, ""))
-    params:set_action(i .. "lfo_offset", function(value) lfo[i].offset = value end)
+    params:add_control(i .."offset", i .. " offset", controlspec.new(-4.0, 3.0, "lin", 0.1, 0.0, ""))
+    params:set_action(i .. "offset", function(value) lfo[i].offset = value end)
     -- lfo speed
     params:add_control(i .. "lfo_freq", i .. " lfo freq", controlspec.new(0.001, 25.0, "lin", 0.001, math.random(100) * 0.001, ""))
     params:set_action(i .. "lfo_freq", function(value) lfo[i].freq = value end)
@@ -98,7 +104,7 @@ function lfo.init()
       elseif lfo[i].waveform == "square" then
         slope = make_square(i)
       end
-      lfo[i].slope = slope * (lfo[i].depth * 0.01) + (lfo[i].offset * 0.01)
+      lfo[i].slope = math.max(-1.0, math.min(1.0, slope)) * (lfo[i].depth * 0.01) + lfo[i].offset
       lfo[i].counter = lfo[i].counter + lfo[i].freq
     end
     lfo.process()

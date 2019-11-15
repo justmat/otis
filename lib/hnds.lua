@@ -4,7 +4,7 @@
 -- parameters.
 -- ----------
 --
--- v0.2 @justmat
+-- v0.3 @justmat
 
 local number_of_outputs = 4
 

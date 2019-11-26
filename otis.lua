@@ -95,7 +95,7 @@ local speed_options = {"free", "octaves"}
 local lfo_targets = {
   "none",
   "sample_rate",
-  "bit_rate",
+  "bit_depth",
   "1pan",
   "2pan",
   "1vol",
@@ -160,10 +160,10 @@ function lfo.process()
     if params:get(i .. "lfo") == 2 then
       -- sample rate
       if target == 2 then
-        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 0.0, 48000.0))
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -4, 3, 0.0, 48000.0))
       -- bit depth
       elseif target == 3 then
-        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 4.0, 31.0))
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -4, 3, 4.0, 31.0))
       -- left/right panning, volume, feedback, speed
       elseif target > 3 and target <= 11 then
         params:set(lfo_targets[target], lfo[i].slope)

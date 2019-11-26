@@ -59,7 +59,7 @@
 --
 -- ----------
 --
--- v1.1 by @justmat
+-- v1.2 by @justmat
 --
 -- https://llllllll.co/t/22149
 

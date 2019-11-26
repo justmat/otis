@@ -59,7 +59,7 @@
 --
 -- ----------
 --
--- v1 by @justmat
+-- v1.1 by @justmat
 --
 -- https://llllllll.co/t/22149
 
@@ -94,6 +94,8 @@ local speed_options = {"free", "octaves"}
 -- for lib/hnds
 local lfo_targets = {
   "none",
+  "sample_rate",
+  "bit_rate",
   "1pan",
   "2pan",
   "1vol",
@@ -156,11 +158,17 @@ function lfo.process()
     local target = params:get(i .. "lfo_target")
 
     if params:get(i .. "lfo") == 2 then
+      -- sample rate
+      if target == 2 then
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 0.0, 48000.0))
+      -- bit depth
+      elseif target == 3 then
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 4.0, 31.0))
       -- left/right panning, volume, feedback, speed
-      if target > 1 and target <= 9 then
+      elseif target > 3 and target <= 11 then
         params:set(lfo_targets[target], lfo[i].slope)
       -- record L on/off
-      elseif target == 10 then
+      elseif target == 12 then
         if lfo[i].slope > 0 then
           if not rec1 then
             rec1 = true
@@ -171,7 +179,7 @@ function lfo.process()
           softcut.rec(1, 0)
         end
       -- record R on/off
-      elseif target == 11 then
+      elseif target == 13 then
         if lfo[i].slope > 0 then
           if not rec2 then
             rec2 = true
@@ -182,7 +190,7 @@ function lfo.process()
           softcut.rec(2, 0)
         end
       -- flip L
-      elseif target == 12 then
+      elseif target == 14 then
         if lfo[i].slope > 0 then
           if not flipped_L then
             flip(1)
@@ -190,7 +198,7 @@ function lfo.process()
           end
         else flipped_L = false end
       -- flip R
-      elseif target == 13 then
+      elseif target == 15 then
         if lfo[i].slope > 0 then
           if not flipped_R then
             flip(2)
@@ -198,7 +206,7 @@ function lfo.process()
           end
         else flipped_R = false end
       -- skip L
-      elseif target == 14 then
+      elseif target == 16 then
         if lfo[i].slope > 0 then
           if not skipped_L then
             skip(1)
@@ -206,7 +214,7 @@ function lfo.process()
           end
         else skipped_L = false end
       -- skip R
-      elseif target == 15 then
+      elseif target == 17 then
         if lfo[i].slope > 0 then
           if not skipped_R then
             skip(2)

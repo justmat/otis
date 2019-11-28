@@ -83,14 +83,23 @@ function sc.init()
     softcut.rate_slew_time(i, 0)
     softcut.level_slew_time(1, 0.25)
 
-    softcut.filter_dry(i, 1)
-    softcut.filter_fc(i, 1200)
-    softcut.filter_fc_mod(i, 1)
-    softcut.filter_lp(i, 1)
-    softcut.filter_rq(i, 5)
-    softcut.filter_hp(i, 0)
-    softcut.filter_bp(i, 0)
-    softcut.filter_br(i, 0)
+    softcut.pre_filter_dry(i, 1)
+    softcut.pre_filter_fc(i, 1200)
+    softcut.pre_filter_fc_mod(i, 1)
+    softcut.pre_filter_lp(i, 1)
+    softcut.pre_filter_rq(i, 5)
+    softcut.pre_filter_hp(i, 0)
+    softcut.pre_filter_bp(i, 0)
+    softcut.pre_filter_br(i, 0)
+    
+    softcut.post_filter_dry(i, 1)
+    softcut.post_filter_fc(i, 1200)
+    softcut.post_filter_fc_mod(i, 1)
+    softcut.post_filter_lp(i, 1)
+    softcut.post_filter_rq(i, 5)
+    softcut.post_filter_hp(i, 0)
+    softcut.post_filter_bp(i, 0)
+    softcut.post_filter_br(i, 0)
 
   end
 
@@ -98,11 +107,11 @@ function sc.init()
   params:add_option("input", "input", {"stereo", "mono (L)"}, 1)
   params:set_action("input", function(x) sc.set_input(x) end)
   -- input level
-  params:add_control("input_level", "input level", controlspec.new(0, 1, "lin", 0, 0))
-  params:set_action("input_level", function(x) audio.level_adc_cut(x) end)
+  params:add_control("sc_input_level", "sc input level", controlspec.new(0, 1, "lin", 0, 0))
+  params:set_action("sc_input_level", function(x) audio.level_adc_cut(x) end)
   -- engine level
-  params:add_control("engine_level", "engine level", controlspec.new(0, 1, "lin", 0, 1))
-  params:set_action("engine_level", function(x) audio.level_eng_cut(x) end)
+  params:add_control("sc_engine_level", "sc engine level", controlspec.new(0, 1, "lin", 0, 1))
+  params:set_action("sc_engine_level", function(x) audio.level_eng_cut(x) end)
 
   params:add_separator()
 
@@ -151,7 +160,7 @@ function sc.init()
     params:set_action(i .. "filter_q", function(x) softcut.post_filter_rq(i, x) softcut.pre_filter_rq(i, x) end)
     -- dry signal
     params:add_control(i .. "dry_signal", i .. " dry signal", controlspec.new(0, 1, 'lin', 0, 1, ""))
-    params:set_action(i .. "dry_signal", function(x) softcut.filter_dry(i, x) end)
+    params:set_action(i .. "dry_signal", function(x) softcut.pre_filter_dry(i, x) softcut.post_filter_dry(i, x) end)
     
     params:add_separator()
   end

@@ -13,7 +13,8 @@ local tau = math.pi * 2
 local options = {
   lfotypes = {
     "sine",
-    "square"
+    "square",
+    "s+h"
   }
 }
 
@@ -63,6 +64,16 @@ local function make_square(n)
   return make_sine(n) >= 0 and 1 or -1
 end
 
+local function make_sh(n)
+  local polarity = make_square(n)
+  if lfo[n].prev_polarity ~= polarity then
+    lfo[n].prev_polarity = polarity
+    return math.random() * (math.random(0, 1) == 0 and 1 or -1)
+  else
+    return lfo[n].prev
+  end
+end
+
 
 function lfo.init()
   for i = 1, number_of_outputs do
@@ -90,16 +101,19 @@ function lfo.init()
   lfo_metro.count = -1
   lfo_metro.event = function()
     for i = 1, number_of_outputs do
-      local slope
-      if params:get(i .. "lfo") == 1 then
-        break
-      elseif lfo[i].waveform == "sine" then
-        slope = make_sine(i)
-      elseif lfo[i].waveform == "square" then
-        slope = make_square(i)
+      if params:get(i .. "lfo") == 2 then
+        local slope
+        if lfo[i].waveform == "sine" then
+          slope = make_sine(i)
+        elseif lfo[i].waveform == "square" then
+          slope = make_square(i)
+        elseif lfo[i].waveform == "s+h" then
+          slope = make_sh(i)
+        end
+        lfo[i].prev = slope
+        lfo[i].slope = math.max(-1.0, math.min(1.0, slope)) * (lfo[i].depth * 0.01) + lfo[i].offset
+        lfo[i].counter = lfo[i].counter + lfo[i].freq
       end
-      lfo[i].slope = math.max(-1.0, math.min(1.0, slope)) * (lfo[i].depth * 0.01) + lfo[i].offset
-      lfo[i].counter = lfo[i].counter + lfo[i].freq
     end
     lfo.process()
   end

@@ -64,6 +64,7 @@ local function make_square(n)
   return make_sine(n) >= 0 and 1 or -1
 end
 
+
 local function make_sh(n)
   local polarity = make_square(n)
   if lfo[n].prev_polarity ~= polarity then

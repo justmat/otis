@@ -94,7 +94,6 @@ function sc.init()
     
     softcut.post_filter_dry(i, 1)
     softcut.post_filter_fc(i, 1200)
-    softcut.post_filter_fc_mod(i, 1)
     softcut.post_filter_lp(i, 0)
     softcut.post_filter_rq(i, 5)
     softcut.post_filter_hp(i, 0)

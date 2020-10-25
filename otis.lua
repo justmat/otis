@@ -259,8 +259,10 @@ function init()
   params:add_control("tone", "tone", controlspec.new(0.001, 1, "lin", 0.001, 0.004, ''))
   params:set_action("tone", function(x) engine.highbias(x) end)
 
-  params:add_control("hiss", "noise", controlspec.new(0, 10, "lin", 0.01, 0.01, ''))
+  params:add_control("hiss", "noise", controlspec.new(0, 10, "lin", 0.01, 0.001, ''))
   params:set_action("hiss", function(x) engine.hissAmount(x) end)
+
+  params:add_separator("skip/speed behavior")
 
   params:add_option("skip_controls", "skip controls", skip_options, 1)
   params:add_option("speed_controls", "speed controls", speed_options, 1)

@@ -77,9 +77,10 @@ end
 
 
 function lfo.init()
+  params:add_separator("modulation")
   for i = 1, number_of_outputs do
-    params:add_separator()
     -- modulation destination
+    params:add_group("lfo " .. i, 6)
     params:add_option(i .. "lfo_target", i .. " lfo target", lfo[i].lfo_targets, 1)
     -- lfo shape
     params:add_option(i .. "lfo_shape", i .. " lfo shape", options.lfotypes, 1)

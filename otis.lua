@@ -240,6 +240,9 @@ end
 
 
 function init()
+
+  sc.init()
+  params:add_separator("engine")
   -- sample rate
   params:add_control("sample_rate", "sample rate", controlspec.new(0, 48000, "lin", 10, 48000, ''))
   params:set_action("sample_rate", function(x) engine.srate(x) end)
@@ -259,9 +262,6 @@ function init()
   params:add_control("hiss", "noise", controlspec.new(0, 10, "lin", 0.01, 0.12, ''))
   params:set_action("hiss", function(x) engine.hissAmount(x) end)
 
-  params:add_separator()
-
-  sc.init()
   params:add_option("skip_controls", "skip controls", skip_options, 1)
   params:add_option("speed_controls", "speed controls", speed_options, 1)
 

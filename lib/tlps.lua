@@ -101,7 +101,7 @@ function sc.init()
     softcut.post_filter_br(i, 0)
 
   end
-
+  params:add_separator("input settings")
   -- input
   params:add_option("input", "input", {"stereo", "mono (L)"}, 1)
   params:set_action("input", function(x) sc.set_input(x) end)
@@ -112,15 +112,16 @@ function sc.init()
   params:add_control("sc_engine_level", "sc engine level", controlspec.new(0, 1, "lin", 0, 1))
   params:set_action("sc_engine_level", function(x) audio.level_eng_cut(x) end)
 
-  params:add_separator()
+  params:add_separator("save buffers")
 
   -- save buffer to disk
-  params:add_trigger("write_to_tape", "write buffers to tape")
+  params:add_trigger("write_to_tape", "write to tape")
   params:set_action("write_to_tape", function() sc.write_buffers() end)
 
-  params:add_separator()
+  params:add_separator("loops")
 
   for i = 1, 2 do
+    params:add_group("loop" .. i, 13)
     -- l/r volume controls
     params:add_control(i .. "vol", i .. " vol", controlspec.new(0, 1, "lin", 0, 1, ""))
     params:set_action(i .. "vol", function(x) softcut.level(i, x) end)
@@ -160,8 +161,6 @@ function sc.init()
     -- dry signal
     params:add_control(i .. "dry_signal", i .. " dry signal", controlspec.new(0, 1, 'lin', 0, 1, ""))
     params:set_action(i .. "dry_signal", function(x) softcut.pre_filter_dry(i, x) softcut.post_filter_dry(i, x) end)
-    
-    params:add_separator()
   end
 end
 

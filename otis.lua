@@ -109,7 +109,11 @@ local lfo_targets = {
   "flip L",
   "flip R",
   "skip L",
-  "skip R"
+  "skip R",
+  "saturation",
+  "crossover",
+  "tone",
+  "noise"
 }
 
 
@@ -221,6 +225,14 @@ function lfo.process()
             skipped_R = true
           end
         else skipped_R = false end
+      elseif target == 18 then --saturation
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -4, 3, 0.0, 400.0))
+      elseif target == 19 then --crossover
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -4, 3, 50, 10000.0))
+      elseif target == 20 then --tone
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -4, 3, 0.01, 1))
+      elseif target == 20 then --noise
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -4, 3, 0, 5))
       end
     end
   end
@@ -234,6 +246,19 @@ function init()
   -- bit depth
   params:add_control("bit_depth", "bit depth", controlspec.new(4, 31, "lin", 0, 31, ''))
   params:set_action("bit_depth", function(x) engine.sdepth(x) end)
+
+  params:add_control("saturation", "saturation", controlspec.new(0.1, 400, "exp", 1, 15, ''))
+  params:set_action("saturation", function(x) engine.distAmount(x) end)
+
+  params:add_control("crossover", "crossover", controlspec.new(50, 10000, "exp", 10, 2000, ''))
+  params:set_action("crossover", function(x) engine.crossover(x) end)
+
+  params:add_control("tone", "tone", controlspec.new(0.001, 1, "lin", 0.001, 0.004, ''))
+  params:set_action("tone", function(x) engine.highbias(x) end)
+
+  params:add_control("hiss", "noise", controlspec.new(0, 10, "lin", 0.01, 0.12, ''))
+  params:set_action("hiss", function(x) engine.hissAmount(x) end)
+
   params:add_separator()
 
   sc.init()

@@ -250,7 +250,7 @@ function init()
   params:add_control("bit_depth", "bit depth", controlspec.new(4, 31, "lin", 0, 31, ''))
   params:set_action("bit_depth", function(x) engine.sdepth(x) end)
 
-  params:add_control("saturation", "saturation", controlspec.new(0.1, 400, "exp", 1, 15, ''))
+  params:add_control("saturation", "saturation", controlspec.new(0.1, 400, "exp", 1, 5, ''))
   params:set_action("saturation", function(x) engine.distAmount(x) end)
 
   params:add_control("crossover", "crossover", controlspec.new(50, 10000, "exp", 10, 2000, ''))
@@ -259,7 +259,7 @@ function init()
   params:add_control("tone", "tone", controlspec.new(0.001, 1, "lin", 0.001, 0.004, ''))
   params:set_action("tone", function(x) engine.highbias(x) end)
 
-  params:add_control("hiss", "noise", controlspec.new(0, 10, "lin", 0.01, 0.12, ''))
+  params:add_control("hiss", "noise", controlspec.new(0, 10, "lin", 0.01, 0.01, ''))
   params:set_action("hiss", function(x) engine.hissAmount(x) end)
 
   params:add_option("skip_controls", "skip controls", skip_options, 1)

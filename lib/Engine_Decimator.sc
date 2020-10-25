@@ -1,6 +1,6 @@
 Engine_Decimator : CroneEngine {
   //Decimate
-  var srate=48000, sdepth=31;
+  var srate=48000, sdepth=32;
 
   //Saturate
   var crossover=1400,
@@ -29,7 +29,7 @@ Engine_Decimator : CroneEngine {
     ~tf = ~tf.normalize;
     ~tfBuf = Buffer.loadCollection(context.server, ~tf.asWavetableNoWrap);
 
-    SynthDef(\Saturator, { |inL, inR, out, srate=48000, sdepth=31, crossover=1400, distAmount=15, lowbias=0.04, highbias=0.12, hissAmount=0.5, cutoff=11500|
+    SynthDef(\Saturator, { |inL, inR, out, srate=48000, sdepth=32, crossover=1400, distAmount=15, lowbias=0.04, highbias=0.12, hissAmount=0.5, cutoff=11500|
       var input = Decimator.ar(SoundIn.ar([0,1]),srate, sdepth);
       var crossAmount = 50;
 
@@ -93,7 +93,7 @@ Engine_Decimator : CroneEngine {
       \inR, context.in_b[1].index,
       \out, context.out_b.index,
       \srate, 48000,
-      \sdepth, 31,
+      \sdepth, 32,
       \crossover, 1400, //500-9k
       \distAmount, 15, //1-500
       \lowbias, 0.04, //0.01 - 1

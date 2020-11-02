@@ -76,7 +76,6 @@ function sc.init()
     softcut.loop_end(i, 60)
 
     softcut.rec(i, 1)
-    softcut.rec_offset(i, -0.00016)
     softcut.rec_level(i, 1)
     softcut.pre_level(i, .75)
 

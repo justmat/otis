@@ -122,7 +122,7 @@ local function skip(n)
   if params:get("skip_controls") == 1 then
     softcut.position(n, params:get(n .. "loop_start"))
   else
-    local length = params:get(n .. "tape_len")
+    local length = params:get(n .. "loop_end")
     softcut.position(n, lfo.scale(math.random(), params:get(n .. "loop_start"), 1.0, 0.25, length))
   end
 end

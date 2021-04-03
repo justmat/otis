@@ -164,10 +164,10 @@ function lfo.process()
     if params:get(i .. "lfo") == 2 then
       -- sample rate
       if target == 2 then
-        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -4, 3, 0.0, 48000.0))
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 0.0, 48000.0))
       -- bit depth
       elseif target == 3 then
-        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -4, 3, 4.0, 31.0))
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 4.0, 32.0))
       -- left/right panning, volume, feedback, speed
       elseif target > 3 and target <= 11 then
         params:set(lfo_targets[target], lfo[i].slope)
@@ -226,13 +226,13 @@ function lfo.process()
           end
         else skipped_R = false end
       elseif target == 18 then --saturation
-        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -4, 3, 0.0, 400.0))
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 0.0, 400.0))
       elseif target == 19 then --crossover
-        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -4, 3, 50, 10000.0))
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 50, 10000.0))
       elseif target == 20 then --tone
-        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -4, 3, 0.01, 1))
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 0.01, 1))
       elseif target == 20 then --noise
-        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -4, 3, 0, 5))
+        params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 0, 5))
       end
     end
   end

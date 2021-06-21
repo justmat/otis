@@ -146,9 +146,9 @@ local function speed_control(n, d)
       params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
     else
       if d < 0 then
-        params:set(n - 1 .. "speed", params:get(n - 1 .. "speed") / 2)
+        params:set(n - 1 .. "speed", params:get(n - 1 .. "speed") / 1.5)
       else
-        params:set(n - 1 .. "speed", params:get(n - 1 .."speed") * 2)
+        params:set(n - 1 .. "speed", params:get(n - 1 .."speed") * 1.5)
       end
     end
   end

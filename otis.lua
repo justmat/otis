@@ -66,7 +66,7 @@
 
 engine.name = "Decimator"
 
-local sc = ("lib/tlps")
+local sc = include("lib/tlps")
 sc.file_path = "/home/we/dust/audio/tape/otis."
 
 local lfo = include("lib/hnds")

@@ -135,6 +135,8 @@ local function flip(n)
   params:set(n .. "speed", spd)
 end
 
+speed_table = {0.125, 0.25, 0.375, 0.5, 0.75, 1, 1.5, 2, 3, 4}
+speed_index = 6
 
 local function speed_control(n, d)
   -- free controls
@@ -146,10 +148,13 @@ local function speed_control(n, d)
       params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
     else
       if d < 0 then
-        params:set(n - 1 .. "speed", params:get(n - 1 .. "speed") / 1.5)
+        speed_index = math.clamp(speed_index - 1, 1, 10)
       else
-        params:set(n - 1 .. "speed", params:get(n - 1 .."speed") * 1.5)
+        speed_index = math.clamp(speed_index + 1, 1, 10)
       end
+      
+      params:set(n - 1 .. "speed", speed_table[speed_index])
+      
     end
   end
 end

@@ -66,7 +66,7 @@
 
 engine.name = "Decimator"
 
-local sc = include("lib/tlps")
+local sc = ("lib/tlps")
 sc.file_path = "/home/we/dust/audio/tape/otis."
 
 local lfo = include("lib/hnds")
@@ -135,6 +135,7 @@ local function flip(n)
   params:set(n .. "speed", spd)
 end
 
+
 speed_table = {0.125, 0.25, 0.375, 0.5, 0.75, 1, 1.5, 2, 3, 4}
 speed_index = 6
 
@@ -148,13 +149,11 @@ local function speed_control(n, d)
       params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
     else
       if d < 0 then
-        speed_index = math.clamp(speed_index - 1, 1, 10)
+        speed_index = util.clamp(speed_index - 1, 1, 10)
       else
-        speed_index = math.clamp(speed_index + 1, 1, 10)
+        speed_index = util.clamp(speed_index + 1, 1, 10)
       end
-      
       params:set(n - 1 .. "speed", speed_table[speed_index])
-      
     end
   end
 end

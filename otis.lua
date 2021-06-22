@@ -89,7 +89,9 @@ local skipped_R = false
 
 local pages = {"mix", "play", "edit"}
 local skip_options = {"start", "???"}
-local speed_options = {"free", "octaves"}
+local speed_options = {"free", "octaves", "fifths"}
+local speed_table = {0.125, 0.25, 0.375, 0.5, 0.75, 1, 1.5, 2, 3, 4} --table of pitches/speeds
+local speed_index = 6 --default index, speed of 1.00
 
 -- for lib/hnds
 local lfo_targets = {
@@ -135,16 +137,24 @@ local function flip(n)
   params:set(n .. "speed", spd)
 end
 
-
-speed_table = {0.125, 0.25, 0.375, 0.5, 0.75, 1, 1.5, 2, 3, 4}
-speed_index = 6
-
 local function speed_control(n, d)
   -- free controls
   if params:get("speed_controls") == 1 then
     params:delta(n - 1 .. "speed", d / 7.5)
-  else
-    -- quantized to octaves
+  
+  --quantized to octaves
+  elseif params:get("speed_controls") == 2 then
+    if params:get(n - 1 .. "speed") == 0 then
+      params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
+    else
+      if d < 0 then
+        params:set(n - 1 .. "speed", params:get(n - 1 .. "speed") / 2)
+      else
+        params:set(n - 1 .. "speed", params:get(n - 1 .."speed") * 2)
+      end
+    end
+  -- quantized to fifths
+  elseif params:get("speed_controls") == 3 then
     if params:get(n - 1 .. "speed") == 0 then
       params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
     else

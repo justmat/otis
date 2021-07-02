@@ -47,6 +47,31 @@ function sc.set_input(n)
   end
 end
 
+local fb_hold1 = .75
+local fb_hold2 = .75
+
+function sc.rec_control(id, state)
+  if id == 1 then
+    if state == 1 then
+      softcut.rec_level(1, 1)
+      params:set("1feedback", fb_hold1)
+    else
+      softcut.rec_level(1, 0)
+      fb_hold1 = params:get("1feedback")
+      params:set("1feedback", 1)
+    end
+  else 
+    if state == 1 then
+      softcut.rec_level(2, 1)
+      params:set("2feedback", fb_hold2)
+    else
+      softcut.rec_level(2, 0)
+      fb_hold2 = params:get("2feedback")
+      params:set("2feedback", 1)
+    end
+  end
+end
+
 
 local function set_loop_start(i, v)
   v = util.clamp(v, 0, params:get(i .. "loop_end") - .01)
@@ -120,7 +145,7 @@ function sc.init()
   params:add_separator("loops")
 
   for i = 1, 2 do
-    params:add_group("loop" .. i, 13)
+    params:add_group("loop" .. i, 14)
     -- l/r volume controls
     params:add_control(i .. "vol", i .. " vol", controlspec.new(0, 1, "lin", 0, 1, ""))
     params:set_action(i .. "vol", function(x) softcut.level(i, x) end)
@@ -139,6 +164,9 @@ function sc.init()
     -- feedback controls
     params:add_control(i .. "feedback", i .. " feedback", controlspec.new(0, 1, "lin", 0, .75, ""))
     params:set_action(i .. "feedback", function(x) softcut.pre_level(i, x) end)
+     -- l/r rec state
+    params:add_number(i .. "rec", i .. " rec", 0, 1, 1)
+    params:set_action(i .. "rec", function(v) sc.rec_control(i, v) end)
     -- pan controls
     params:add_control(i .. "pan", i .. " pan", controlspec.new(-1.0, 1.0, "lin", 0.01, i == 1 and -.5 or .5, ""))
     params:set_action(i .. "pan", function(x) softcut.pan(i, x) end)
@@ -162,6 +190,5 @@ function sc.init()
     params:set_action(i .. "dry_signal", function(x) softcut.pre_filter_dry(i, x) softcut.post_filter_dry(i, x) end)
   end
 end
-
 
 return sc

@@ -70,6 +70,7 @@ local sc = include("lib/tlps")
 sc.file_path = "/home/we/dust/audio/tape/otis."
 
 local lfo = include("lib/hnds")
+local m = midi.connect(1)
 
 local alt = 0
 local page = 2
@@ -82,6 +83,8 @@ local muted_R = false
 local pre_mute_vol_R = 0
 local rec1 = true
 local rec2 = true
+local fb_hold1 = nil
+local fb_hold2 = nil
 local flipped_L = false
 local flipped_R = false
 local skipped_L = false
@@ -89,9 +92,7 @@ local skipped_R = false
 
 local pages = {"mix", "play", "edit"}
 local skip_options = {"start", "???"}
-local speed_options = {"free", "octaves", "fifths"}
-local speed_table = {0.125, 0.25, 0.375, 0.5, 0.75, 1, 1.5, 2, 3, 4} --table of pitches/speeds
-local speed_index = 6 --default index, speed of 1.00
+local speed_options = {"free", "octaves"}
 
 -- for lib/hnds
 local lfo_targets = {
@@ -137,13 +138,13 @@ local function flip(n)
   params:set(n .. "speed", spd)
 end
 
+
 local function speed_control(n, d)
   -- free controls
   if params:get("speed_controls") == 1 then
     params:delta(n - 1 .. "speed", d / 7.5)
-  
-  --quantized to octaves
-  elseif params:get("speed_controls") == 2 then
+  else
+    -- quantized to octaves
     if params:get(n - 1 .. "speed") == 0 then
       params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
     else
@@ -153,21 +154,8 @@ local function speed_control(n, d)
         params:set(n - 1 .. "speed", params:get(n - 1 .."speed") * 2)
       end
     end
-  -- quantized to fifths
-  elseif params:get("speed_controls") == 3 then
-    if params:get(n - 1 .. "speed") == 0 then
-      params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
-    else
-      if d < 0 then
-        speed_index = util.clamp(speed_index - 1, 1, 10)
-      else
-        speed_index = util.clamp(speed_index + 1, 1, 10)
-      end
-      params:set(n - 1 .. "speed", speed_table[speed_index])
-    end
   end
 end
-
 
 -- for lib/hnds
 function lfo.process()
@@ -190,22 +178,26 @@ function lfo.process()
         if lfo[i].slope > 0 then
           if not rec1 then
             rec1 = true
-            softcut.rec(1, 1)
+            params:set("1rec", 1)
+            --softcut.rec(1, 1)
           end
         else
           rec1 = false
-          softcut.rec(1, 0)
+          params:set("1rec", 0)
+          --softcut.rec(1, 0)
         end
       -- record R on/off
       elseif target == 13 then
         if lfo[i].slope > 0 then
           if not rec2 then
             rec2 = true
-            softcut.rec(2, 1)
+            params:set("2rec", 1)
+            --softcut.rec(2, 1)
           end
         else
           rec2 = false
-          softcut.rec(2, 0)
+          params:set("2rec", 0)
+          --softcut.rec(2, 0)
         end
       -- flip L
       elseif target == 14 then
@@ -250,50 +242,6 @@ function lfo.process()
       end
     end
   end
-end
-
-
-function init()
-
-  sc.init()
-  params:add_separator("engine")
-  -- sample rate
-  params:add_control("sample_rate", "sample rate", controlspec.new(0, 48000, "lin", 10, 48000, ''))
-  params:set_action("sample_rate", function(x) engine.srate(x) end)
-  -- bit depth
-  params:add_control("bit_depth", "bit depth", controlspec.new(4, 31, "lin", 0, 31, ''))
-  params:set_action("bit_depth", function(x) engine.sdepth(x) end)
-
-  params:add_control("saturation", "saturation", controlspec.new(0.1, 400, "exp", 1, 5, ''))
-  params:set_action("saturation", function(x) engine.distAmount(x) end)
-
-  params:add_control("crossover", "crossover", controlspec.new(50, 10000, "exp", 10, 2000, ''))
-  params:set_action("crossover", function(x) engine.crossover(x) end)
-
-  params:add_control("tone", "tone", controlspec.new(0.001, 1, "lin", 0.001, 0.004, ''))
-  params:set_action("tone", function(x) engine.highbias(x) end)
-
-  params:add_control("hiss", "noise", controlspec.new(0, 10, "lin", 0.01, 0.001, ''))
-  params:set_action("hiss", function(x) engine.hissAmount(x) end)
-
-  params:add_separator("skip/speed behavior")
-
-  params:add_option("skip_controls", "skip controls", skip_options, 1)
-  params:add_option("speed_controls", "speed controls", speed_options, 1)
-
-  -- for lib/hnds
-  for i = 1, 4 do
-    lfo[i].lfo_targets = lfo_targets
-  end
-  lfo.init()
-
-  params:bang()
-  softcut.buffer_clear()
-
-  local screen_metro = metro.init()
-  screen_metro.time = 1/30
-  screen_metro.event = function() redraw() end
-  screen_metro:start()
 end
 
 
@@ -420,11 +368,11 @@ local function edit_key(n, z)
     end
   else
     if n == 2 and z == 1 then
-      softcut.rec(1, rec1 == true and 0 or 1)
       rec1 = not rec1
+      params:set("1rec", rec1 == true and 1 or 0)
     elseif n == 3 and z == 1 then
-      softcut.rec(2, rec2 == true and 0 or 1)
       rec2 = not rec2
+      params:set("2rec", rec2 == true and 1 or 0)
     end
   end
 end
@@ -443,6 +391,73 @@ function key(n, z)
     edit_key(n, z)
   end
 end
+
+local function midi_control(data)
+  local msg = midi.to_msg(data)
+  if msg.type == "note_on" then
+    if msg.note == 40 then
+      edit_key(2, 1)
+    elseif msg.note == 41 then
+      
+    elseif msg.note == 42 then
+      edit_key(3, 1)
+    end
+  elseif msg.type == "note_off" then
+  elseif msg.type == "cc" then
+    if msg.cc == 112 then
+      params:set("1feedback", util.linlin(0, 127, 0.00, 1.00, msg.val))
+      params:set("2feedback", util.linlin(0, 127, 0.00, 1.00, msg.val))
+
+    end
+  end
+end
+
+
+function init()
+
+  sc.init()
+  m.event = midi_control
+
+  params:add_separator("engine")
+  -- sample rate
+  params:add_control("sample_rate", "sample rate", controlspec.new(0, 48000, "lin", 10, 48000, ''))
+  params:set_action("sample_rate", function(x) engine.srate(x) end)
+  -- bit depth
+  params:add_control("bit_depth", "bit depth", controlspec.new(4, 31, "lin", 0, 31, ''))
+  params:set_action("bit_depth", function(x) engine.sdepth(x) end)
+
+  params:add_control("saturation", "saturation", controlspec.new(0.1, 400, "exp", 1, 5, ''))
+  params:set_action("saturation", function(x) engine.distAmount(x) end)
+
+  params:add_control("crossover", "crossover", controlspec.new(50, 10000, "exp", 10, 2000, ''))
+  params:set_action("crossover", function(x) engine.crossover(x) end)
+
+  params:add_control("tone", "tone", controlspec.new(0.001, 1, "lin", 0.001, 0.004, ''))
+  params:set_action("tone", function(x) engine.highbias(x) end)
+
+  params:add_control("hiss", "noise", controlspec.new(0, 10, "lin", 0.01, 0.001, ''))
+  params:set_action("hiss", function(x) engine.hissAmount(x) end)
+
+  params:add_separator("skip/speed behavior")
+
+  params:add_option("skip_controls", "skip controls", skip_options, 1)
+  params:add_option("speed_controls", "speed controls", speed_options, 1)
+
+  -- for lib/hnds
+  for i = 1, 4 do
+    lfo[i].lfo_targets = lfo_targets
+  end
+  lfo.init()
+
+  params:bang()
+  softcut.buffer_clear()
+
+  local screen_metro = metro.init()
+  screen_metro.time = 1/30
+  screen_metro.event = function() redraw() end
+  screen_metro:start()
+end
+
 
 -- screen drawing
 
@@ -578,9 +593,9 @@ local function draw_page_edit()
 
   screen.level(alt == 1 and 3 or 15)
   screen.move(5, 52)
-  screen.text(rec1 == true and "rec : on" or "rec : off")
+  screen.text(params:get("1rec") == 1 and "rec : on" or "rec : off")
   screen.move(122, 52)
-  screen.text_right(rec2 == true and "rec : on" or "rec : off")
+  screen.text_right(params:get("2rec") == 1 and "rec : on" or "rec : off")
   screen.level(alt == 1 and 15 or 3)
   screen.move(5, 60)
   screen.text("clear")

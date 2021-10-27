@@ -66,11 +66,13 @@
 
 engine.name = "Decimator"
 
+g = grid.connect()
+
 local sc = include("lib/tlps")
 sc.file_path = "/home/we/dust/audio/tape/otis."
 
+local m = midi.connect()
 local lfo = include("lib/hnds")
-local m = midi.connect(1)
 
 local alt = 0
 local page = 2
@@ -407,10 +409,14 @@ end
 local function midi_control(data)
   local msg = midi.to_msg(data)
   if msg.type == "note_on" then
-    if msg.note == 40 then
+    if msg.note == 1 then
+      softcut.buffer_clear_channel(1)
+    elseif msg.note == 2 then
+      softcut.buffer_clear_channel(2)
+    elseif msg.note == 40 then
       edit_key(2, 1)
     elseif msg.note == 41 then
-      
+
     elseif msg.note == 42 then
       edit_key(3, 1)
     end
@@ -466,7 +472,7 @@ function init()
 
   local screen_metro = metro.init()
   screen_metro.time = 1/30
-  screen_metro.event = function() redraw() end
+  screen_metro.event = function() redraw() grid_redraw() end
   screen_metro:start()
 end
 
@@ -639,4 +645,135 @@ function redraw()
     draw_page_edit()
   end
   screen.update()
+  grid_redraw()
+end
+
+-- grid stuff
+
+function g.key(x, y, z)
+  if z == 1 then
+    if x == 1 and y == 1 then
+      rec1 = true
+      params:set("1rec", rec1 == true and 1 or 0)
+    elseif x == 2 and y == 1 then
+      rec1 = false
+      params:set("1rec", rec1 == true and 1 or 0)
+    elseif x == 1 and y == 5 then
+      rec2 = true
+      params:set("2rec", rec2 == true and 1 or 0)
+    elseif x == 2 and y == 5 then
+      rec2 = false
+      params:set("2rec", rec2 == true and 1 or 0)
+    end
+
+    if x == 4 and y == 1 then
+      flip(1)
+    elseif x == 4 and y == 5 then
+      flip(2)
+    end
+
+     if x == 5 and y == 1 and z == 1 then
+      skip(1)
+      skip_time_L = util.time()
+    elseif x == 5 and y == 5 and z == 1 then
+      skip(2)
+      skip_time_R = util.time()
+    end
+
+    if x == 1 and y == 2 then
+      if math.abs(params:get("1speed")) > 0.25 then
+        if params:get("speed_controls") == 1 then
+          params:delta("1speed", -3 / 7.5)
+        else
+          params:set("1speed", params:get("1speed") / 2)
+        end
+      end
+    end
+
+    if x == 8 and y == 2 then
+      if math.abs(params:get("1speed")) < 4 then
+        if params:get("speed_controls") == 1 then
+          params:delta("1speed", 3 / 7.5)
+        else
+          params:set("1speed", params:get("1speed") * 2)
+        end
+      end
+    end
+
+    if x == 1 and y == 6 then
+      if math.abs(params:get("2speed")) > 0.25 then
+        if params:get("speed_controls") == 1 then
+          params:delta("2speed", -3 / 7.5)
+        else
+          params:set("2speed", params:get("2speed") / 2)
+        end
+      end
+    end
+
+    if x == 8 and y == 6 then
+      if math.abs(params:get("2speed")) < 4 then
+        if params:get("speed_controls") == 1 then
+          params:delta("2speed", 3 / 7.5)
+        else
+          params:set("2speed", params:get("2speed") * 2)
+        end
+      end
+    end
+
+    if x >= 3 and x <= 6 then
+      lfo_index = x - 2
+
+      if y == 7 then
+        params:set(lfo_index .. "lfo", 2)
+      elseif y == 8 then
+        params:set(lfo_index .. "lfo", 0)
+      end
+    end
+  end
+  redraw()
+end
+
+
+function grid_redraw()
+  g:all(0)
+
+  if rec1 then
+    g:led(1, 1, 15)
+    g:led(2, 1, 4)
+  else
+    g:led(1, 1, 4)
+    g:led(2, 1, 15)
+  end
+
+  g:led(4, 1, 15)
+  g:led(5, 1, 15)
+
+  g:led(1, 2, 15)
+  g:led(8, 2, 15)
+
+  if rec2 then
+    g:led(1, 5, 15)
+    g:led(2, 5, 4)
+  else
+    g:led(1, 5, 4)
+    g:led(2, 5, 15)
+  end
+
+  g:led(4, 5, 15)
+  g:led(5, 5, 15)
+
+  g:led(1, 6, 15)
+  g:led(8, 6, 15)
+
+  g:led(3, 7, params:get("1lfo") == 2 and 15 or 4)
+  g:led(4, 7, params:get("2lfo") == 2 and 15 or 4)
+  g:led(5, 7, params:get("3lfo") == 2 and 15 or 4)
+  g:led(6, 7, params:get("4lfo") == 2 and 15 or 4)
+
+  g:led(3, 8, params:get("1lfo") == 2 and 4 or 15)
+  g:led(4, 8, params:get("2lfo") == 2 and 4 or 15)
+  g:led(5, 8, params:get("3lfo") == 2 and 4 or 15)
+  g:led(6, 8, params:get("4lfo") == 2 and 4 or 15)
+
+  g:refresh()
 end

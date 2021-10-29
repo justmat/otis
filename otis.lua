@@ -475,6 +475,12 @@ function init()
   screen_metro.time = 1/30
   screen_metro.event = function() redraw() grid_redraw() end
   screen_metro:start()
+
+  local grid_metro = metro.init()
+  grid_metro.time = 1/15
+  grid_metro.event = function() grid_redraw() end
+  grid_metro:start()
+
 end
 
 
@@ -752,6 +758,7 @@ end
 
 
 function grid_redraw()
+
   g:all(0)
 
   if rec1 then
@@ -799,4 +806,5 @@ function grid_redraw()
   g:led(6, 8, params:get("4lfo") == 2 and 4 or 15)
 
   g:refresh()
+
 end

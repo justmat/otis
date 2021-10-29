@@ -473,7 +473,7 @@ function init()
 
   local screen_metro = metro.init()
   screen_metro.time = 1/30
-  screen_metro.event = function() redraw() grid_redraw() end
+  screen_metro.event = function() redraw() end
   screen_metro:start()
 
   local grid_metro = metro.init()

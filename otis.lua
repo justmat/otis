@@ -67,6 +67,7 @@
 engine.name = "Decimator"
 
 g = grid.connect()
+g_alt = false
 
 local sc = include("lib/tlps")
 sc.file_path = "/home/we/dust/audio/tape/otis."
@@ -416,7 +417,7 @@ local function midi_control(data)
     elseif msg.note == 40 then
       edit_key(2, 1)
     elseif msg.note == 41 then
-
+      
     elseif msg.note == 42 then
       edit_key(3, 1)
     end
@@ -651,6 +652,10 @@ end
 -- grid stuff
 
 function g.key(x, y, z)
+  if x == 1 and y == 8 then
+    g_alt = z == 1 and true or false
+  end
+  
   if z == 1 then
     if x == 1 and y == 1 then
       rec1 = true
@@ -720,6 +725,18 @@ function g.key(x, y, z)
       end
     end
 
+    if x == 8 and y == 1 then
+      if g_alt then
+        softcut.buffer_clear_channel(1)
+      end
+    end
+    
+    if x == 8 and y == 5 then
+      if g_alt then
+        softcut.buffer_clear_channel(2)
+      end
+    end
+    
     if x >= 3 and x <= 6 then
       lfo_index = x - 2
 
@@ -764,6 +781,12 @@ function grid_redraw()
 
   g:led(1, 6, 15)
   g:led(8, 6, 15)
+
+  g:led(1, 8, g_alt == true and 15 or 4)
+  if g_alt then
+    g:led(8, 1, 15)
+    g:led(8, 5, 15)
+  end
 
   g:led(3, 7, params:get("1lfo") == 2 and 15 or 4)
   g:led(4, 7, params:get("2lfo") == 2 and 15 or 4)

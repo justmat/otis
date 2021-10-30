@@ -795,16 +795,10 @@ function grid_redraw()
     g:led(8, 5, 15)
   end
 
-
-  g:led(3, 7, params:get("1lfo") == 2 and math.floor(util.linlin( -1, 1, 0, 15, lfo[1].slope)) or 4)
-  g:led(4, 7, params:get("2lfo") == 2 and math.floor(util.linlin( -1, 1, 0, 15, lfo[2].slope)) or 4)
-  g:led(5, 7, params:get("3lfo") == 2 and math.floor(util.linlin( -1, 1, 0, 15, lfo[3].slope)) or 4)
-  g:led(6, 7, params:get("4lfo") == 2 and math.floor(util.linlin( -1, 1, 0, 15, lfo[4].slope)) or 4)
-
-  g:led(3, 8, params:get("1lfo") == 2 and 4 or 15)
-  g:led(4, 8, params:get("2lfo") == 2 and 4 or 15)
-  g:led(5, 8, params:get("3lfo") == 2 and 4 or 15)
-  g:led(6, 8, params:get("4lfo") == 2 and 4 or 15)
+  for i = 1, 4 do
+    g:led(i + 2, 7, params:get(i .. "lfo") == 2 and math.floor(util.linlin( -1, 1, 0, 15, lfo[i].slope)) or 4)
+    g:led(i + 2, 8, params:get(i .. "lfo") == 2 and 4 or 15)
+  end
 
   g:refresh()
 

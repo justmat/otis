@@ -73,7 +73,7 @@ local sc = include("lib/tlps")
 sc.file_path = "/home/we/dust/audio/tape/otis."
 
 local m = midi.connect()
-local lfo = include("lib/hnds")
+lfo = include("lib/hnds")
 
 local alt = 0
 local page = 2
@@ -795,10 +795,11 @@ function grid_redraw()
     g:led(8, 5, 15)
   end
 
-  g:led(3, 7, params:get("1lfo") == 2 and 15 or 4)
-  g:led(4, 7, params:get("2lfo") == 2 and 15 or 4)
-  g:led(5, 7, params:get("3lfo") == 2 and 15 or 4)
-  g:led(6, 7, params:get("4lfo") == 2 and 15 or 4)
+
+  g:led(3, 7, params:get("1lfo") == 2 and math.floor(util.linlin( -1, 1, 0, 15, lfo[1].slope)) or 4)
+  g:led(4, 7, params:get("2lfo") == 2 and math.floor(util.linlin( -1, 1, 0, 15, lfo[2].slope)) or 4)
+  g:led(5, 7, params:get("3lfo") == 2 and math.floor(util.linlin( -1, 1, 0, 15, lfo[3].slope)) or 4)
+  g:led(6, 7, params:get("4lfo") == 2 and math.floor(util.linlin( -1, 1, 0, 15, lfo[4].slope)) or 4)
 
   g:led(3, 8, params:get("1lfo") == 2 and 4 or 15)
   g:led(4, 8, params:get("2lfo") == 2 and 4 or 15)

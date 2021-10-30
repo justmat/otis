@@ -3,8 +3,6 @@
 
 stereo "tape" delay/looper thing for norns 2.2
 
-_very much a work in progress_
-
 join the conversation at - https://llllllll.co/t/22149
 
 ---

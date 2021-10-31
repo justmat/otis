@@ -414,12 +414,20 @@ local function midi_control(data)
       softcut.buffer_clear_channel(1)
     elseif msg.note == 2 then
       softcut.buffer_clear_channel(2)
-    elseif msg.note == 40 then
-      edit_key(2, 1)
-    elseif msg.note == 41 then
-      
-    elseif msg.note == 42 then
-      edit_key(3, 1)
+    elseif msg.note == 36 then
+      edit_key(2, 1) -- rec L
+    elseif msg.note == 37 then
+      edit_key(3, 1) -- rec R
+    elseif msg.note == 48 then
+      play_key(2, 1) -- flip L
+    elseif msg.note == 49 then
+      play_key(3, 1) -- flip R
+    elseif msg.note == 50 then
+      skip(1)
+      skip_time_L = util.time()
+    elseif msg.note == 51 then
+      skip(2)
+      skip_time_R = util.time()
     end
   elseif msg.type == "note_off" then
   elseif msg.type == "cc" then

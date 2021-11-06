@@ -171,7 +171,7 @@ function sc.init()
     params:add_control(i .. "pan", i .. " pan", controlspec.new(-1.0, 1.0, "lin", 0.01, i == 1 and -.5 or .5, ""))
     params:set_action(i .. "pan", function(x) softcut.pan(i, x) end)
     -- pan slew controls
-    params:add_control(i .. "pan_slew", i.. " pan slew", controlspec.new(0, 1, "lin", 0.01, 0, ""))
+    params:add_control(i .. "pan_slew", i.. " pan slew", controlspec.new(0, 1, "lin", 0.01, 0.1, ""))
     params:set_action(i .. "pan_slew", function(x) softcut.pan_slew_time(i, x) end)
     -- filter cut off
     params:add_control(i .. "filter_cutoff", i .. " filter cutoff", controlspec.new(10, 12000, 'exp', 1, 12000, "Hz"))

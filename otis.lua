@@ -259,6 +259,12 @@ function lfo.process()
   end
 end
 
+-- softcut polls
+positions = { -1, -1, -1, -1}
+
+local function update_positions(i, pos)
+  positions[i] = pos
+end
 
 -- norns controls --
 
@@ -443,6 +449,12 @@ end
 function init()
 
   sc.init()
+  for i = 1, 2 do
+    softcut.phase_quant(i, .005)
+    softcut.event_phase(update_positions)
+    softcut.poll_start_phase()
+  end
+  
   m.event = midi_control
 
   params:add_separator("engine")
@@ -666,10 +678,11 @@ end
 -- grid stuff
 
 function g.key(x, y, z)
+  -- alt key
   if x == 1 and y == 8 then
     g_alt = z == 1 and true or false
   end
-  
+  -- left grid
   if z == 1 then
     if x == 1 and y == 1 then
       rec1 = true
@@ -760,6 +773,17 @@ function g.key(x, y, z)
         params:set(lfo_index .. "lfo", 0)
       end
     end
+    -- jump to position
+    if x > 8 and y == 1 or y == 5 then
+      local s, e = params:get("1loop_start"), params:get("1loop_end") 
+      local p = util.linlin(9, 16, s, e, x)
+      softcut.position(y == 1 and 1 or 2, p)
+    end
+    -- set pan position
+    if x > 9 and y == 3 or y == 7 then
+      local pan = util.linlin(10, 14, -1, 1, x)
+      params:set(y == 3 and "1pan" or "2pan", pan)
+    end
   end
   redraw()
 end
@@ -802,10 +826,25 @@ function grid_redraw()
     g:led(8, 1, 15)
     g:led(8, 5, 15)
   end
-
+  -- lfo on/off/slope-feedback
   for i = 1, 4 do
     g:led(i + 2, 7, params:get(i .. "lfo") == 2 and math.floor(util.linlin( -1, 1, 0, 15, lfo[i].slope)) or 4)
     g:led(i + 2, 8, params:get(i .. "lfo") == 2 and 4 or 15)
+  end
+  -- rough buffer position
+  for i = 1, 2 do
+    local loop_in, loop_out = params:get(i .. "loop_start"), params:get(i .. "loop_end")
+    for j = 9, 16 do
+      g:led(j, i == 1 and 1 or 5, 4)
+    end
+    g:led(math.floor(util.linlin(loop_in, loop_out, 9, 17, positions[i])), i == 1 and 1 or 5, 15)
+  end
+  -- pan position
+  for i = 1, 2 do
+    for j = 10, 14 do
+      g:led(j, i == 1 and 3 or 7, 4)
+      g:led(math.floor(util.linlin(-1, 1, 10, 14, params:get(i == 1 and "1pan" or "2pan"))), i== 1 and 3 or 7, 15)
+    end
   end
 
   g:refresh()

@@ -185,9 +185,21 @@ function lfo.process()
       -- bit depth
       elseif target == 3 then
         params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 4.0, 32.0))
-      -- left/right panning, volume, feedback, speed
-      elseif target > 3 and target <= 11 then
+      -- left/right panning, volume, feedback
+      elseif target > 3 and target <= 9 then
         params:set(lfo_targets[target], lfo[i].slope)
+      -- speed
+      elseif target == 10 or target == 11 then
+        --no speed control
+        if params:get("speed_controls") == 1 then
+          params:set(lfo_targets[target], lfo[i].slope)
+        --speed control: octaves
+        elseif params:get("speed_controls") == 2 then
+          params:set(lfo_targets[target], 4^(util.round (lfo[i].slope, 0.5)))
+        --speed control: fifths
+        elseif params:get("speed_controls") == 3 then
+          params:set(lfo_targets[target], speed_table[util.round(util.linlin(-1.0,1.0,1,#speed_table, lfo[i].slope))])
+        end
       -- record L on/off
       elseif target == 12 then
         if lfo[i].slope > 0 then

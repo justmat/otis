@@ -96,6 +96,58 @@ local speed_options = {"free", "octaves", "fifths"}
 local speed_table = {0.125, 0.25, 0.375, 0.5, 0.75, 1, 1.5, 2, 3, 4} --table of pitches/speeds
 local speed_index = 6 --default index, speed of 1.00
 
+
+-- flip, skip, and speed controls
+local function skip(n)
+  -- reset loop to start, or jump to a random position
+  if params:get("skip_controls") == 1 then
+    softcut.position(n, params:get(n .. "loop_start"))
+  else
+    local length = params:get(n .. "loop_end")
+    softcut.position(n, lfo.scale(math.random(), params:get(n .. "loop_start"), 1.0, 0.25, length))
+  end
+end
+
+
+local function flip(n)
+  -- flip tape direction
+  local spd = params:get(n .. "speed")
+  spd = -spd
+  params:set(n .. "speed", spd)
+end
+
+
+local function speed_control(n, d)
+  -- free controls
+  if params:get("speed_controls") == 1 then
+    params:delta(n - 1 .. "speed", d / 7.5)
+    --quantized to octaves
+  elseif params:get("speed_controls") == 2 then
+    if params:get(n - 1 .. "speed") == 0 then
+      params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
+    else
+      if d < 0 then
+        params:set(n - 1 .. "speed", params:get(n - 1 .. "speed") / 2)
+      else
+        params:set(n - 1 .. "speed", params:get(n - 1 .."speed") * 2)
+      end
+    end
+     -- quantized to fifths
+  elseif params:get("speed_controls") == 3 then
+    if params:get(n - 1 .. "speed") == 0 then
+      params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
+    else
+      if d < 0 then
+        speed_index = util.clamp(speed_index - 1, 1, 10)
+      else
+        speed_index = util.clamp(speed_index + 1, 1, 10)
+      end
+      params:set(n - 1 .. "speed", speed_table[speed_index])
+    end
+  end
+end
+
+
 -- for lib/hnds
 lfo = include("lib/hnds")
 
@@ -222,57 +274,6 @@ function lfo.process()
       elseif target == 20 then --noise
         params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 0, 5))
       end
-    end
-  end
-end
-
--- flip, skip, and speed controls
-
-local function skip(n)
-  -- reset loop to start, or jump to a random position
-  if params:get("skip_controls") == 1 then
-    softcut.position(n, params:get(n .. "loop_start"))
-  else
-    local length = params:get(n .. "loop_end")
-    softcut.position(n, lfo.scale(math.random(), params:get(n .. "loop_start"), 1.0, 0.25, length))
-  end
-end
-
-
-local function flip(n)
-  -- flip tape direction
-  local spd = params:get(n .. "speed")
-  spd = -spd
-  params:set(n .. "speed", spd)
-end
-
-
-local function speed_control(n, d)
-  -- free controls
-  if params:get("speed_controls") == 1 then
-    params:delta(n - 1 .. "speed", d / 7.5)
-    --quantized to octaves
-  elseif params:get("speed_controls") == 2 then
-    if params:get(n - 1 .. "speed") == 0 then
-      params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
-    else
-      if d < 0 then
-        params:set(n - 1 .. "speed", params:get(n - 1 .. "speed") / 2)
-      else
-        params:set(n - 1 .. "speed", params:get(n - 1 .."speed") * 2)
-      end
-    end
-     -- quantized to fifths
-  elseif params:get("speed_controls") == 3 then
-    if params:get(n - 1 .. "speed") == 0 then
-      params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
-    else
-      if d < 0 then
-        speed_index = util.clamp(speed_index - 1, 1, 10)
-      else
-        speed_index = util.clamp(speed_index + 1, 1, 10)
-      end
-      params:set(n - 1 .. "speed", speed_table[speed_index])
     end
   end
 end

@@ -59,21 +59,20 @@
 --
 -- ----------
 --
--- v1.4 by @justmat
+-- v2 by @justmat
 --
 -- https://llllllll.co/t/22149
 
 
 engine.name = "Decimator"
 
-g = grid.connect()
-g_alt = false
+local g = grid.connect()
+local g_alt = false
 
 local sc = include("lib/tlps")
 sc.file_path = "/home/we/dust/audio/tape/otis."
 
 local m = midi.connect()
-lfo = include("lib/hnds")
 
 local alt = 0
 local page = 2
@@ -98,6 +97,12 @@ local speed_table = {0.125, 0.25, 0.375, 0.5, 0.75, 1, 1.5, 2, 3, 4} --table of 
 local speed_index = 6 --default index, speed of 1.00
 
 -- for lib/hnds
+lfo = include("lib/hnds")
+
+local lfo_types = {"sine", "square", "s+h"}
+local show_lfo_info = {false, false, false, false}
+local lfo_index = nil
+
 local lfo_targets = {
   "none",
   "sample_rate",
@@ -123,56 +128,6 @@ local lfo_targets = {
 }
 
 
-local function skip(n)
-  -- reset loop to start, or jump to a random position
-  if params:get("skip_controls") == 1 then
-    softcut.position(n, params:get(n .. "loop_start"))
-  else
-    local length = params:get(n .. "loop_end")
-    softcut.position(n, lfo.scale(math.random(), params:get(n .. "loop_start"), 1.0, 0.25, length))
-  end
-end
-
-
-local function flip(n)
-  -- flip tape direction
-  local spd = params:get(n .. "speed")
-  spd = -spd
-  params:set(n .. "speed", spd)
-end
-
-
-local function speed_control(n, d)
-  -- free controls
-  if params:get("speed_controls") == 1 then
-    params:delta(n - 1 .. "speed", d / 7.5)
-    --quantized to octaves
-  elseif params:get("speed_controls") == 2 then
-    if params:get(n - 1 .. "speed") == 0 then
-      params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
-    else
-      if d < 0 then
-        params:set(n - 1 .. "speed", params:get(n - 1 .. "speed") / 2)
-      else
-        params:set(n - 1 .. "speed", params:get(n - 1 .."speed") * 2)
-      end
-    end
-     -- quantized to fifths
-  elseif params:get("speed_controls") == 3 then
-    if params:get(n - 1 .. "speed") == 0 then
-      params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
-    else
-      if d < 0 then
-        speed_index = util.clamp(speed_index - 1, 1, 10)
-      else
-        speed_index = util.clamp(speed_index + 1, 1, 10)
-      end
-      params:set(n - 1 .. "speed", speed_table[speed_index])
-    end
-  end
-end
-
--- for lib/hnds
 function lfo.process()
 
   for i = 1, 4 do
@@ -271,7 +226,58 @@ function lfo.process()
   end
 end
 
--- softcut polls
+-- flip, skip, and speed controls
+
+local function skip(n)
+  -- reset loop to start, or jump to a random position
+  if params:get("skip_controls") == 1 then
+    softcut.position(n, params:get(n .. "loop_start"))
+  else
+    local length = params:get(n .. "loop_end")
+    softcut.position(n, lfo.scale(math.random(), params:get(n .. "loop_start"), 1.0, 0.25, length))
+  end
+end
+
+
+local function flip(n)
+  -- flip tape direction
+  local spd = params:get(n .. "speed")
+  spd = -spd
+  params:set(n .. "speed", spd)
+end
+
+
+local function speed_control(n, d)
+  -- free controls
+  if params:get("speed_controls") == 1 then
+    params:delta(n - 1 .. "speed", d / 7.5)
+    --quantized to octaves
+  elseif params:get("speed_controls") == 2 then
+    if params:get(n - 1 .. "speed") == 0 then
+      params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
+    else
+      if d < 0 then
+        params:set(n - 1 .. "speed", params:get(n - 1 .. "speed") / 2)
+      else
+        params:set(n - 1 .. "speed", params:get(n - 1 .."speed") * 2)
+      end
+    end
+     -- quantized to fifths
+  elseif params:get("speed_controls") == 3 then
+    if params:get(n - 1 .. "speed") == 0 then
+      params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
+    else
+      if d < 0 then
+        speed_index = util.clamp(speed_index - 1, 1, 10)
+      else
+        speed_index = util.clamp(speed_index + 1, 1, 10)
+      end
+      params:set(n - 1 .. "speed", speed_table[speed_index])
+    end
+  end
+end
+
+-- for softcut phase/position polls
 positions = { -1, -1, -1, -1}
 
 local function update_positions(i, pos)
@@ -279,7 +285,7 @@ local function update_positions(i, pos)
 end
 
 -- norns controls --
-
+-- encoders --
 local function mix_enc(n, d)
   if alt == 1 then
       if n == 2 then
@@ -334,13 +340,39 @@ end
 
 
 function enc(n, d)
+  -- holding the lfo on/patch grid button will hijack the encoders
+  -- if an lfo on/patch button is held store the lfo index in id
+  -- otherwise id will be nil
+  local id = nil
+  for i = 1, 4 do
+    if show_lfo_info[i] then
+      id = i
+    end
+  end
   -- navigation
-  if n == 1 then
+  if n == 1 and not id then
     page = util.clamp(page + d, 1, 3)
     page_time = util.time()
   end
-  -- interface pages
-  if page == 1 then
+
+  if id then
+    if n == 1 then
+      params:delta(id .. "lfo_freq", d / 10)
+    elseif n == 2 then
+      params:delta(id .. "lfo_depth", d)
+    elseif n == 3 then
+      params:delta(id .. "offset", d)
+    end
+  elseif g_alt then
+    -- hold grid alt to use enc 2 and 3 to slide your loop around
+    if n == 2 then
+      params:delta("1loop_start", d / 12)
+      params:delta("1loop_end", d / 12)
+    elseif n == 3 then
+      params:delta("2loop_start", d / 12)
+      params:delta("2loop_end", d / 12)
+    end
+  elseif page == 1 then
     mix_enc(n,d)
   elseif page == 2 then
     play_enc(n, d)
@@ -349,7 +381,7 @@ function enc(n, d)
   end
 end
 
-
+-- keys --
 local function mix_key(n, z)
   if n == 2 and z == 1 then
     if not muted_L then
@@ -412,9 +444,26 @@ end
 
 
 function key(n, z)
+  -- norns key 1 serves as an alt button
   if n == 1 then alt = z end
+  -- holding the lfo on/patch grid button will hijack the norns keys
+  -- if an lfo on/patch button is held store the lfo index in id
+  -- otherwise id will be nil
+  local id = nil
+  for i = 1, 4 do
+    if show_lfo_info[i] then
+      id = i
+    end
+  end
+  
+  if id then
+    if n == 2 and z == 1 then
+      params:set(lfo_index .. "lfo_shape", params:get(lfo_index .. "lfo_shape") - 1)
+    elseif n == 3 and z == 1 then
+      params:set(lfo_index .. "lfo_shape", params:get(lfo_index .. "lfo_shape") + 1)
+    end
   -- mix
-  if page == 1 then
+  elseif page == 1 then
     mix_key(n, z)
   -- play
   elseif page == 2 then
@@ -425,6 +474,7 @@ function key(n, z)
   end
 end
 
+-- midi controls --
 local function midi_control(data)
   local msg = midi.to_msg(data)
   if msg.type == "note_on" then
@@ -459,16 +509,16 @@ end
 
 
 function init()
-
+  -- setup softcut and start the phase polls
   sc.init()
   for i = 1, 2 do
     softcut.phase_quant(i, .005)
     softcut.event_phase(update_positions)
     softcut.poll_start_phase()
   end
-  
+  -- set the midi event function
   m.event = midi_control
-
+  -- engine parameters
   params:add_separator("engine")
   -- sample rate
   params:add_control("sample_rate", "sample rate", controlspec.new(0, 48000, "lin", 10, 48000, ''))
@@ -476,16 +526,16 @@ function init()
   -- bit depth
   params:add_control("bit_depth", "bit depth", controlspec.new(4, 31, "lin", 0, 31, ''))
   params:set_action("bit_depth", function(x) engine.sdepth(x) end)
-
+  -- tape sat
   params:add_control("saturation", "saturation", controlspec.new(0.1, 400, "exp", 1, 5, ''))
   params:set_action("saturation", function(x) engine.distAmount(x) end)
-
+  -- crossover filter
   params:add_control("crossover", "crossover", controlspec.new(50, 10000, "exp", 10, 2000, ''))
   params:set_action("crossover", function(x) engine.crossover(x) end)
-
+  -- bias
   params:add_control("tone", "tone", controlspec.new(0.001, 1, "lin", 0.001, 0.004, ''))
   params:set_action("tone", function(x) engine.highbias(x) end)
-
+  -- tape hiss
   params:add_control("hiss", "noise", controlspec.new(0, 10, "lin", 0.01, 0.001, ''))
   params:set_action("hiss", function(x) engine.hissAmount(x) end)
 
@@ -502,7 +552,7 @@ function init()
 
   params:bang()
   softcut.buffer_clear()
-
+  -- timers for screen and grid redraws
   local screen_metro = metro.init()
   screen_metro.time = 1/30
   screen_metro.event = function() redraw() end
@@ -512,12 +562,9 @@ function init()
   grid_metro.time = 1/15
   grid_metro.event = function() grid_redraw() end
   grid_metro:start()
-
 end
 
-
 -- screen drawing
-
 local function draw_left()
   -- tape direction indicator
   screen.line_rel(0, -7)
@@ -661,6 +708,27 @@ local function draw_page_edit()
 end
 
 
+local function draw_lfo_info()
+  screen.clear()
+  screen.move(64, 5)
+  screen.level(3)
+  screen.text_center("lfo " .. lfo_index)
+  screen.level(15)
+
+  screen.move(5, 23)
+  screen.text("target: " .. lfo_targets[params:get(lfo_index .. "lfo_target")])
+  screen.move(75, 23)
+  screen.text("shape: " .. lfo_types[params:get(lfo_index .. "lfo_shape")])
+  screen.move(5, 33)
+  screen.text("1. speed: " .. params:get(lfo_index .. "lfo_freq"))
+  screen.move(75, 33)
+  screen.text("2. depth: " .. params:get(lfo_index .. "lfo_depth"))
+  screen.move(5, 43)
+  screen.text("3. offset: " .. params:get(lfo_index .. "offset"))
+
+end
+
+
 function redraw()
   screen.clear()
   screen.aa(0)
@@ -675,8 +743,19 @@ function redraw()
     screen.level(1)
     screen.text(pages[page])
   end
+  -- holding the lfo on/patch grid button will hijack the screen
+  -- if an lfo on/patch button is held store the lfo index in id
+  -- otherwise id will be nil
+  local show = nil
+  for i= 1, 4 do
+    if show_lfo_info[i] then
+      show = i
+    end
+  end
 
-  if page == 1 then
+  if show then
+    draw_lfo_info()
+  elseif page == 1 then
     draw_page_mix()
   elseif page == 2 then
     draw_page_play()
@@ -684,18 +763,45 @@ function redraw()
     draw_page_edit()
   end
   screen.update()
-  grid_redraw()
 end
 
 -- grid stuff
 
 function g.key(x, y, z)
-  -- alt key
+  -- grid alt key
   if x == 1 and y == 8 then
     g_alt = z == 1 and true or false
   end
-  -- left grid
+
+  -- grid lfo patching
+  for i = 1, 4 do
+    if show_lfo_info[i] then
+      if x >= 1 and x <= 2 and y == 1 then
+        params:set(i .. "lfo_target", 12)
+      elseif x >= 1 and x <= 2 and y == 5 then
+        params:set(i .. "lfo_target", 13)
+      elseif x == 4 and y == 1 then
+        params:set(i .. "lfo_target", 14)
+      elseif x == 4 and y == 5 then
+        params:set(i .. "lfo_target", 15)
+      elseif x == 1 and y == 2 or x == 8 and y == 2 then
+        params:set(i .. "lfo_target", 10)
+      elseif x == 1 and y == 6 or x == 8 and y == 6 then
+        params:set(i .. "lfo_target", 11)
+      elseif x == 5 and y == 1 then
+        params:set(i .. "lfo_target", 16)
+      elseif x == 5 and y == 5 then
+        params:set(i .. "lfo_target", 17)
+      elseif x >= 10 and x <= 14 and y == 3 then
+        params:set(i .. "lfo_target", 4)
+      elseif x >= 10 and x <= 14 and y == 7 then
+        params:set(i .. "lfo_target", 5)
+      end
+    end
+  end
+
   if z == 1 then
+    -- record L/R on/off toggles
     if x == 1 and y == 1 then
       rec1 = true
       params:set("1rec", rec1 == true and 1 or 0)
@@ -709,25 +815,29 @@ function g.key(x, y, z)
       rec2 = false
       params:set("2rec", rec2 == true and 1 or 0)
     end
-
+    -- flip/skip L/R
     if x == 4 and y == 1 then
       flip(1)
     elseif x == 4 and y == 5 then
       flip(2)
     end
-
-     if x == 5 and y == 1 and z == 1 then
+  
+    if x == 5 and y == 1 and z == 1 then
       skip(1)
       skip_time_L = util.time()
     elseif x == 5 and y == 5 and z == 1 then
       skip(2)
       skip_time_R = util.time()
     end
-
+    -- speed controls
+    -- holding grid alt and pressing a speed button will return speed to 1
+    -- otherwise increase or decrease speed, respecting the speed mode settings
     if x == 1 and y == 2 then
-      if math.abs(params:get("1speed")) > 0.25 then
+      if g_alt then
+        params:set("1speed", 1)
+      elseif math.abs(params:get("1speed")) > 0.25 then
         if params:get("speed_controls") == 1 then
-          params:delta("1speed", -3 / 7.5)
+           params:delta("1speed", -3 / 7.5)
         else
           params:set("1speed", params:get("1speed") / 2)
         end
@@ -735,7 +845,9 @@ function g.key(x, y, z)
     end
 
     if x == 8 and y == 2 then
-      if math.abs(params:get("1speed")) < 4 then
+      if g_alt then
+        params:set("1speed", 1)
+      elseif math.abs(params:get("1speed")) < 4 then
         if params:get("speed_controls") == 1 then
           params:delta("1speed", 3 / 7.5)
         else
@@ -745,7 +857,9 @@ function g.key(x, y, z)
     end
 
     if x == 1 and y == 6 then
-      if math.abs(params:get("2speed")) > 0.25 then
+      if g_alt then
+        params:set("2speed", 1)
+      elseif math.abs(params:get("2speed")) > 0.25 then
         if params:get("speed_controls") == 1 then
           params:delta("2speed", -3 / 7.5)
         else
@@ -755,7 +869,9 @@ function g.key(x, y, z)
     end
 
     if x == 8 and y == 6 then
-      if math.abs(params:get("2speed")) < 4 then
+      if g_alt then
+        params:set("2speed", 1)
+      elseif math.abs(params:get("2speed")) < 4 then
         if params:get("speed_controls") == 1 then
           params:delta("2speed", 3 / 7.5)
         else
@@ -763,41 +879,73 @@ function g.key(x, y, z)
         end
       end
     end
-
+    -- holding grid alt will surface the L/R buffer clear buttons
     if x == 8 and y == 1 then
       if g_alt then
         softcut.buffer_clear_channel(1)
       end
     end
-    
+      
     if x == 8 and y == 5 then
       if g_alt then
         softcut.buffer_clear_channel(2)
       end
     end
-    
-    if x >= 3 and x <= 6 then
-      lfo_index = x - 2
-
-      if y == 7 then
-        params:set(lfo_index .. "lfo", 2)
-      elseif y == 8 then
-        params:set(lfo_index .. "lfo", 0)
-      end
-    end
-    -- jump to position
-    if x > 8 and y == 1 or y == 5 then
+    -- jump to rough position
+    if x >= 9 and x <= 16 and y == 1 then
       local s, e = params:get("1loop_start"), params:get("1loop_end") 
       local p = util.linlin(9, 16, s, e, x)
-      softcut.position(y == 1 and 1 or 2, p)
+      softcut.position(1, p)
+    elseif x >= 9 and x <= 16 and y == 5 then
+      local s, e = params:get("2loop_start"), params:get("2loop_end") 
+      local p = util.linlin(9, 16, s, e, x)
+      softcut.position(2, p)
     end
     -- set pan position
-    if x > 9 and y == 3 or y == 7 then
+    if x > 9 and x < 14 then
       local pan = util.linlin(10, 14, -1, 1, x)
-      params:set(y == 3 and "1pan" or "2pan", pan)
+      if y == 3  then 
+        params:set("1pan", pan)
+      elseif y == 7 then
+        params:set("2pan", pan)
+      end
+    end
+    -- double/half loop length
+    if x == 10 and y == 2 or x == 14 and y == 2 then
+      local s, e = params:get("1loop_start"), params:get("1loop_end") 
+      local l = e - s
+      local nl = x == 10 and l / 2 or l * 2
+      params:set("1loop_end", s + nl)
+    elseif x == 10 and y == 6  or x == 14 and y == 6 then
+      local s, e = params:get("2loop_start"), params:get("2loop_end") 
+      local l = e - s
+      local nl = x == 10 and l / 2 or l * 2
+      params:set("2loop_end", s + nl)
     end
   end
-  redraw()
+  -- lfo on/off
+  -- hold grid alt and press either a lfo on/patch or lfo off button
+  -- to clear the lfo target
+  if x >= 3 and x <= 6 and y == 7 then
+    lfo_index = x - 2
+    --current_lfo = lfo_index
+    if g_alt then
+      params:set(lfo_index .. "lfo_target", 1)
+    else
+      params:set(lfo_index .. "lfo", 2)
+      show_lfo_info[lfo_index] = z == 1 and true or false
+    end
+  end
+
+  if x >= 3 and x <= 6 and y == 8 and z == 1 then
+    lfo_index = x - 2
+    if g_alt then
+      params:set(lfo_index .. "lfo", 0)
+      params:set(lfo_index .. "lfo_target", 1)
+    else
+      params:set(lfo_index .. "lfo", 0)
+    end
+  end
 end
 
 
@@ -851,6 +999,11 @@ function grid_redraw()
     end
     g:led(math.floor(util.linlin(loop_in, loop_out, 9, 17, positions[i])), i == 1 and 1 or 5, 15)
   end
+  -- loop length modifiers
+  g:led(10, 2, 15)
+  g:led(14, 2, 15)
+  g:led(10, 6, 15)
+  g:led(14, 6, 15)
   -- pan position
   for i = 1, 2 do
     for j = 10, 14 do
@@ -858,7 +1011,5 @@ function grid_redraw()
       g:led(math.floor(util.linlin(-1, 1, 10, 14, params:get(i == 1 and "1pan" or "2pan"))), i== 1 and 3 or 7, 15)
     end
   end
-
   g:refresh()
-
 end

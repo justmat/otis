@@ -1,7 +1,7 @@
 
-# otis v1.4
+# otis v2
 
-stereo "tape" delay/looper thing for norns 2.2
+stereo "tape" delay/looper thing for norns
 
 join the conversation at - https://llllllll.co/t/22149
 
@@ -47,3 +47,36 @@ _skip behavior by default is a loop reset; however, it can be configured to jump
 * ALT + enc 3 = speed config
 
 _nb: turning rec L/R off will hold the buffer, allowing use as a looper._
+
+---
+
+# grid 
+
+![a](assets/a.jpg)
+
+L/R loops are laid out identically:
+
+![b](assets/b.jpg)
+
+touch a key inside the "loop posistion" area to jump to that point in the loop.
+
+![c](assets/c.jpg)
+
+to "patch" an lfo:
+* hold an **lfo on** button
+* touch a control
+
+while holding an **lfo on** button you can edit lfo parameters with the norns encoders and keys:
+* enc 1: lfo speed/frequency
+* enc 2: lfo depth
+* enc 3: lfo offset
+
+* key 2/3: set lfo shape
+
+
+holding the grid alt button and pressing in the lfo section will "un-patch" the lfo.
+
+holding the grid alt button and touching any speed button will return speed to 1.
+
+holding the grid alt button and turning enc 2/3 will "slide" your L/R loops around the buffer.  
+

@@ -365,7 +365,7 @@ function enc(n, d)
       params:delta(id .. "offset", d)
     end
   elseif g_alt then
-    -- hold grid alt to use enc 2 and 3 to slide your loop around
+    -- hold grid alt to use enc 2 and 3 to slide your loops around
     if n == 2 then
       params:delta("1loop_start", d / 12)
       params:delta("1loop_end", d / 12)

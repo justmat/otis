@@ -903,7 +903,7 @@ function g.key(x, y, z)
       softcut.position(2, p)
     end
     -- set pan position
-    if x > 9 and x < 14 then
+    if x > 9 and x <= 14 then
       local pan = util.linlin(10, 14, -1, 1, x)
       if y == 3  then 
         params:set("1pan", pan)

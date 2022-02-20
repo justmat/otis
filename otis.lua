@@ -271,7 +271,7 @@ function lfo.process()
         params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 50, 10000.0))
       elseif target == 20 then --tone
         params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 0.01, 1))
-      elseif target == 20 then --noise
+      elseif target == 21 then --noise
         params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 0, 5))
       end
     end

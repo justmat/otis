@@ -58,7 +58,7 @@ _nb: turning rec L/R off will hold the buffer, allowing use as a looper._
 ![otis](assets/otis21.png)
 
 * L/R loops are laid out identically.
-* touch a key inside the "loop posistion" area to jump to that point in the loop.
+* touch a key inside the "loop position" area to jump to that point in the loop.
 * holding the **grid alt** button and touching one of the speed up/down buttons will return speed to 1.
 * holding the **grid alt** button and turning enc 2/3 will "slide" your L/R loops around the buffer. 
 
@@ -126,7 +126,7 @@ that's it! you're a musical hacker person now!
 * noise - tape hiss amount
 
 ### config
-* skip controls - wether skip jumps back to the start of your loop, or to a random position
+* skip controls - whether skip jumps back to the start of your loop, or to a random position
 * speed scale - set your speed scale/quantizing
 * audio routing - set the signal flow. default is input + softcut -> engine.
 

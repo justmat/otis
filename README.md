@@ -1,6 +1,8 @@
 
 # otis v2
 
+![pixelcat](assets/pixelotis.png)
+
 stereo "tape" delay/looper thing for norns
 
 join the conversation at - https://llllllll.co/t/22149
@@ -31,7 +33,7 @@ there are three pages, _mix_, _play_, and _edit_. navigate with encoder 1. hold 
 * ALT + enc 2 = feedback L
 * ALT + enc 3 = feedback R
 
-_nb: tape speed behavior by default is free; however, it can be quantized to octaves via the **parameters** menu._
+_nb: tape speed behavior by default is free; however, it can be quantized to many different scales via the **parameters** menu._
 _skip behavior by default is a loop reset; however, it can be configured to jump to random positions via the **parameters** menu._
 
 ### _edit_
@@ -52,31 +54,54 @@ _nb: turning rec L/R off will hold the buffer, allowing use as a looper._
 
 # grid 
 
-![a](assets/a.jpg)
 
-L/R loops are laid out identically:
+![otis](assets/otis21.png)
 
-![b](assets/b.jpg)
+* L/R loops are laid out identically.
+* touch a key inside the "loop posistion" area to jump to that point in the loop.
+* holding the **grid alt** button and touching one of the speed up/down buttons will return speed to 1.
+* holding the **grid alt** button and turning enc 2/3 will "slide" your L/R loops around the buffer. 
 
-touch a key inside the "loop posistion" area to jump to that point in the loop.
+---
 
-![c](assets/c.jpg)
-
-to "patch" an lfo:
-* hold an **lfo on** button
-* touch a control
+# lfo's
 
 while holding an **lfo on** button you can edit lfo parameters with the norns encoders and keys:
 * enc 1: lfo speed/frequency
 * enc 2: lfo depth
 * enc 3: lfo offset
-
 * key 2/3: set lfo shape
 
+to "patch" an lfo:
+
+* hold an **lfo on** button
+* adjust lfo settings
+* touch a control
 
 holding the grid alt button and pressing in the lfo section will "un-patch" the lfo.
 
-holding the grid alt button and touching any speed button will return speed to 1.
+---
 
-holding the grid alt button and turning enc 2/3 will "slide" your L/R loops around the buffer.  
+# speed scales
+
+speed scales are collections of 6 speeds that are playable via the grid. adding your own "tunings" is easy.
+
+* connect norns to wifi and launch maiden
+* open the ``dust/code/otis/lib`` folder
+* open the file named ``spds.lua``
+
+![spds](assets/spds.png)
+
+to add your custom scale, simply:
+
+* add the scale name to the ``spds.names`` table. (it's likely best to avoid spaces and special characters)
+
+![names](assets/names.png)
+
+* add a ``spds.YourNameHere`` table containing six numbers 0-4.
+
+![scales](assets/scales.png)
+
+that's it! you're a musical hacker person now!
+ 
 

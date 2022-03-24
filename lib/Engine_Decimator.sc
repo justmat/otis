@@ -127,9 +127,9 @@ Engine_Decimator : CroneEngine {
     }); 
 
     this.addCommand("hissAmount", "f", {|msg|
-	var amp = msg[1]*0.1;
-	if(amp>0.001, {amp = amp.linexp(0.001, 1, 0.001, 0.25)});
-	saturator.set(\hissAmount, amp);
+	     var amp = msg[1]*0.1;
+       if(amp>0.001, {amp = amp.linexp(0.001, 1, 0.001, 0.25)});
+	     saturator.set(\hissAmount, amp);
     }); 
   }
 

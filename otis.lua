@@ -59,7 +59,7 @@
 --
 -- ----------
 --
--- v2 by @justmat
+-- v2.1 by @justmat
 --
 -- https://llllllll.co/t/22149
 
@@ -92,9 +92,8 @@ local skipped_R = false
 
 local pages = {"mix", "play", "edit"}
 local skip_options = {"start", "???"}
-local speed_options = {"free", "octaves", "fifths"}
-local speed_table = {0.125, 0.25, 0.375, 0.5, 0.75, 1, 1.5, 2, 3, 4} --table of pitches/speeds
-local speed_index = 6 --default index, speed of 1.00
+local spds = include("lib/spds")
+local speed_index = {4, 4} -- maybe move this to spds.lua?
 
 
 -- flip, skip, and speed controls
@@ -118,32 +117,21 @@ end
 
 
 local function speed_control(n, d)
-  -- free controls
+  -- free speed controls
   if params:get("speed_controls") == 1 then
-    params:delta(n - 1 .. "speed", d / 7.5)
-    --quantized to octaves
-  elseif params:get("speed_controls") == 2 then
-    if params:get(n - 1 .. "speed") == 0 then
-      params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
-    else
-      if d < 0 then
-        params:set(n - 1 .. "speed", params:get(n - 1 .. "speed") / 2)
-      else
-        params:set(n - 1 .. "speed", params:get(n - 1 .."speed") * 2)
-      end
+    params:delta(n .. "speed", d / 7.5)
+    if params:get(n .. "speed") == 0 then
+      params:set(n .. "speed", d < 0 and -0.01 or 0.01)
     end
-     -- quantized to fifths
-  elseif params:get("speed_controls") == 3 then
-    if params:get(n - 1 .. "speed") == 0 then
-      params:set(n - 1 .. "speed", d < 0 and -0.01 or 0.01)
+  -- quantized speed controls
+  else
+    local speed_set = spds.names[params:get("speed_controls")]
+    if d < 0 then
+      speed_index[n] = util.clamp(speed_index[n] - 1, 1, #spds[speed_set])
     else
-      if d < 0 then
-        speed_index = util.clamp(speed_index - 1, 1, 10)
-      else
-        speed_index = util.clamp(speed_index + 1, 1, 10)
-      end
-      params:set(n - 1 .. "speed", speed_table[speed_index])
+      speed_index[n] = util.clamp(speed_index[n] + 1, 1, #spds[speed_set])
     end
+    params:set(n .. "speed", spds[speed_set][speed_index[n]])
   end
 end
 
@@ -181,7 +169,6 @@ local lfo_targets = {
 
 
 function lfo.process()
-
   for i = 1, 4 do
     local target = params:get(i .. "lfo_target")
 
@@ -200,12 +187,9 @@ function lfo.process()
         --no speed control
         if params:get("speed_controls") == 1 then
           params:set(lfo_targets[target], lfo[i].slope)
-        --speed control: octaves
-        elseif params:get("speed_controls") == 2 then
-          params:set(lfo_targets[target], 4^(util.round (lfo[i].slope, 0.5)))
-        --speed control: fifths
-        elseif params:get("speed_controls") == 3 then
-          params:set(lfo_targets[target], speed_table[util.round(util.linlin(-1.0,1.0,1,#speed_table, lfo[i].slope))])
+        elseif params:get("speed_controls") > 1 then
+          local speed_set = spds.names[params:get("speed_controls")]
+          params:set(lfo_targets[target], spds[speed_set][util.round(util.linlin(-1.0,1.0,1,#spds[speed_set], lfo[i].slope))])
         end
       -- record L on/off
       elseif target == 12 then
@@ -317,7 +301,7 @@ local function play_enc(n, d)
     end
   else
     if n == 2 or n == 3 then
-      speed_control(n, d)
+      speed_control(n - 1, d)
     end
   end
 end
@@ -543,7 +527,17 @@ function init()
   params:add_separator("skip/speed behavior")
 
   params:add_option("skip_controls", "skip controls", skip_options, 1)
-  params:add_option("speed_controls", "speed controls", speed_options, 1)
+  params:add_option("speed_controls", "speed controls", spds.names, 1)
+  params:add{
+    type = "option", id = "audio_routing", name = "audio routing", 
+    options = {"in+cut->eng","in->eng","cut->eng"},
+    -- min = 1, max = 3, 
+    default = 1,
+    action = function(value) 
+      rerouting_audio = true
+      clock.run(route_audio)
+    end
+    }
 
   -- for lib/hnds
   for i = 1, 4 do
@@ -563,6 +557,8 @@ function init()
   grid_metro.time = 1/15
   grid_metro.event = function() grid_redraw() end
   grid_metro:start()
+
+ audio.level_eng_cut(0)
 end
 
 -- screen drawing
@@ -637,16 +633,16 @@ local function draw_page_play()
   screen.move(64, 39)
   screen.text_center("feedback R : " .. string.format("%.2f", params:get("2feedback")))
 
-  screen.move(34, 16)
+  screen.move(30, 16)
   screen.level(params:get("1speed") < 0 and 15 or 0)
   draw_left()
-  screen.move(34, 24)
+  screen.move(30, 24)
   screen.level(params:get("2speed") < 0 and 15 or 0)
   draw_left()
-  screen.move(96, 16)
+  screen.move(99, 16)
   screen.level(params:get("1speed") > 0 and 15 or 0)
   draw_right()
-  screen.move(96, 24)
+  screen.move(99, 24)
   screen.level(params:get("2speed") > 0 and 15 or 0)
   draw_right()
 
@@ -836,35 +832,52 @@ function g.key(x, y, z)
     if x == 1 and y == 2 then
       if g_alt then
         params:set("1speed", 1)
-      elseif math.abs(params:get("1speed")) > 0.25 then
-        if params:get("speed_controls") == 1 then
-           params:delta("1speed", -3 / 7.5)
-        else
-          params:set("1speed", params:get("1speed") / 2)
+      --elseif math.abs(params:get("1speed")) > 0.25 then
+      elseif params:get("speed_controls") == 1 then
+        params:delta("1speed", -3 / 7.5)
+      else
+        speed_control(1, -1)
+      end
+    end
+    
+    if x > 1 and x < 8 and y == 2 then
+      if g_alt then
+      else
+        if params:get("speed_controls") > 1 then
+          local n = x - 1
+          params:set("1speed", spds[spds.names[params:get("speed_controls")]][n])
+          speed_index[1] = n
         end
       end
     end
-
+    
     if x == 8 and y == 2 then
       if g_alt then
         params:set("1speed", 1)
-      elseif math.abs(params:get("1speed")) < 4 then
-        if params:get("speed_controls") == 1 then
-          params:delta("1speed", 3 / 7.5)
-        else
-          params:set("1speed", params:get("1speed") * 2)
-        end
+      elseif params:get("speed_controls") == 1 then
+        params:delta("1speed", 3 / 7.5)
+      else
+        speed_control(1, 1)
       end
     end
 
     if x == 1 and y == 6 then
       if g_alt then
         params:set("2speed", 1)
-      elseif math.abs(params:get("2speed")) > 0.25 then
-        if params:get("speed_controls") == 1 then
-          params:delta("2speed", -3 / 7.5)
-        else
-          params:set("2speed", params:get("2speed") / 2)
+      elseif params:get("speed_controls") == 1 then
+        params:delta("2speed", -3 / 7.5)
+      else
+        speed_control(2, -1)
+      end
+    end
+
+    if x > 1 and x < 8 and y == 6 then
+      if g_alt then
+      else
+        if params:get("speed_controls") > 1 then
+          local n = x - 1
+          params:set("2speed", spds[spds.names[params:get("speed_controls")]][n])
+          speed_index[2] = n
         end
       end
     end
@@ -872,14 +885,13 @@ function g.key(x, y, z)
     if x == 8 and y == 6 then
       if g_alt then
         params:set("2speed", 1)
-      elseif math.abs(params:get("2speed")) < 4 then
-        if params:get("speed_controls") == 1 then
-          params:delta("2speed", 3 / 7.5)
-        else
-          params:set("2speed", params:get("2speed") * 2)
-        end
+      elseif params:get("speed_controls") == 1 then
+        params:delta("2speed", 3 / 7.5)
+      else
+        speed_control(2, 1)
       end
     end
+
     -- holding grid alt will surface the L/R buffer clear buttons
     if x == 8 and y == 1 then
       if g_alt then
@@ -967,6 +979,14 @@ function grid_redraw()
 
   g:led(1, 2, 15)
   g:led(8, 2, 15)
+  
+  if params:get("speed_controls") > 1 then
+    for i = 1, 6 do
+      g:led(i + 1, 2, 4)
+    end
+    g:led(speed_index[1] + 1, 2, 15)
+  end
+  
 
   if rec2 then
     g:led(1, 5, 15)
@@ -981,6 +1001,13 @@ function grid_redraw()
 
   g:led(1, 6, 15)
   g:led(8, 6, 15)
+
+  if params:get("speed_controls") > 1 then
+    for i = 1, 6 do
+      g:led(i + 1, 6, 4)
+    end
+    g:led(speed_index[2] + 1, 6, 15)
+  end
 
   g:led(1, 8, g_alt == true and 15 or 4)
   if g_alt then
@@ -1013,4 +1040,39 @@ function grid_redraw()
     end
   end
   g:refresh()
+end
+
+function route_audio()
+    clock.sleep(0.5)
+    local selected_route = params:get("audio_routing")
+    if rerouting_audio == true then
+      rerouting_audio = false
+      if selected_route == 1 then -- audio in + softcut output -> supercollider
+        os.execute("jack_connect crone:output_5 SuperCollider:in_1;")  
+        os.execute("jack_connect crone:output_6 SuperCollider:in_2;")
+        os.execute("jack_connect softcut:output_1 SuperCollider:in_1;")  
+        os.execute("jack_connect softcut:output_2 SuperCollider:in_2;")      
+      elseif selected_route == 2 then --just audio in -> supercollider
+        os.execute("jack_disconnect softcut:output_1 SuperCollider:in_1;")  
+        os.execute("jack_disconnect softcut:output_2 SuperCollider:in_2;")
+        os.execute("jack_connect crone:output_5 SuperCollider:in_1;")  
+        os.execute("jack_connect crone:output_6 SuperCollider:in_2;")
+      elseif selected_route == 3 then -- just softcut output -> supercollider
+        os.execute("jack_disconnect crone:output_5 SuperCollider:in_1;")  
+        os.execute("jack_disconnect crone:output_6 SuperCollider:in_2;")
+        os.execute("jack_connect softcut:output_1 SuperCollider:in_1;")  
+        os.execute("jack_connect softcut:output_2 SuperCollider:in_2;")        
+      end
+    end
+end
+
+function cleanup ()
+  if _print then print = _print end
+  print("cleanup")
+  metro.free_all()
+  os.execute("jack_disconnect softcut:output_1 SuperCollider:in_1;")  
+  os.execute("jack_disconnect softcut:output_2 SuperCollider:in_2;")
+  os.execute("jack_connect crone:output_5 SuperCollider:in_1;")  
+  os.execute("jack_connect crone:output_6 SuperCollider:in_2;")
+  audio.level_eng_cut(1)
 end

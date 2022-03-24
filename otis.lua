@@ -524,10 +524,10 @@ function init()
   params:add_control("hiss", "noise", controlspec.new(0, 10, "lin", 0.01, 0.001, ''))
   params:set_action("hiss", function(x) engine.hissAmount(x) end)
 
-  params:add_separator("skip/speed behavior")
+  params:add_separator("config")
 
   params:add_option("skip_controls", "skip controls", skip_options, 1)
-  params:add_option("speed_controls", "speed controls", spds.names, 1)
+  params:add_option("speed_controls", "speed scale", spds.names, 1)
   params:add{
     type = "option", id = "audio_routing", name = "audio routing", 
     options = {"in+cut->eng","in->eng","cut->eng"},

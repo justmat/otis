@@ -1,5 +1,5 @@
 
-# otis v2
+# otis v2.1
 
 ![pixelcat](assets/pixelotis.png)
 
@@ -98,10 +98,42 @@ to add your custom scale, simply:
 
 ![names](assets/names.png)
 
-* add a ``spds.YourNameHere`` table containing six numbers 0-4.
+* add a ``spds.YourNameGoesHere`` table containing six numbers 0-4.
 
 ![scales](assets/scales.png)
 
 that's it! you're a musical hacker person now!
  
+# parameter details
 
+### l/r loops
+* vol - loop volume
+* speed - playback and recording speed
+* speed slew - the time it takes for your speed to "settle" at its destination speed.
+* loop start - start of your loop in seconds
+* loop end - end of your loop in seconds
+* feedback - how much of your overwritten material should stick around? 1 is all, 0 is none.
+* rec - enable/disable recording
+* pan - stereo posistion
+* pan slew - time it takes for your pan position to "settle" at its destination position.
+
+### engine
+* sample rate
+* bit depth
+* saturation - tape style saturation amount
+* crossover - crossover frequency for the effect filters
+* tone
+* noise - tape hiss amount
+
+### modulation
+* lfo target - select parameter to modulate
+* lfo shape - sine, square, or sample and hold
+* lfo depth - amount of modulation
+* offset - lfo offset amount
+* lfo freq - lfo speed
+* lfo - lfo on/off toggle
+
+### config
+* skip controls - wether skip jumps back to the start of your loop, or to a random position
+* speed scale - set your speed scale/quantizing
+* audio routing - set the signal flow. default is input + softcut -> engine.

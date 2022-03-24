@@ -170,21 +170,6 @@ function sc.init()
     -- pan slew controls
     params:add_control(i .. "pan_slew", i.. " pan slew", controlspec.new(0, 1, "lin", 0.01, 0.1, ""))
     params:set_action(i .. "pan_slew", function(x) softcut.pan_slew_time(i, x) end)
-    -- filter cut off
-    params:add_control(i .. "filter_cutoff", i .. " filter cutoff", controlspec.new(10, 12000, 'exp', 1, 12000, "Hz"))
-    params:set_action(i .. "filter_cutoff", function(x) softcut.post_filter_fc(i, x) end)
-    -- low pass
-    params:add_control(i .. "low_pass", i .. " low pass", controlspec.new(0, 1, 'lin', 0, 0, ""))
-    params:set_action(i .. "low_pass", function(x) softcut.post_filter_lp(i, x) end)
-    -- high pass
-    params:add_control(i .. "high_pass", i .. " high pass", controlspec.new(0, 1, 'lin', 0, 0, ""))
-    params:set_action(i .. "high_pass", function(x) softcut.post_filter_hp(i, x) end)
-    -- filter q
-    params:add_control(i .. "filter_q", i .. " filter q", controlspec.new(0.0005, 8.0, 'exp', 0, 5.0, ""))
-    params:set_action(i .. "filter_q", function(x) softcut.post_filter_rq(i, x) end)
-    -- dry signal
-    params:add_control(i .. "dry_signal", i .. " dry signal", controlspec.new(0, 1, 'lin', 0, 1, ""))
-    params:set_action(i .. "dry_signal", function(x) softcut.pre_filter_dry(i, x) end)
   end
 end
 

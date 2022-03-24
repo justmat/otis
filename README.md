@@ -39,7 +39,7 @@ _skip behavior by default is a loop reset; however, it can be configured to jump
 ### _edit_
 
 * key 2 = rec L on/off
-* key 3 rec R on/off
+* key 3 = rec R on/off
 * ALT + key 2 = clear buffer L
 * ALT + key 3 = clear buffer R
 
@@ -125,6 +125,11 @@ that's it! you're a musical hacker person now!
 * tone
 * noise - tape hiss amount
 
+### config
+* skip controls - wether skip jumps back to the start of your loop, or to a random position
+* speed scale - set your speed scale/quantizing
+* audio routing - set the signal flow. default is input + softcut -> engine.
+
 ### modulation
 * lfo target - select parameter to modulate
 * lfo shape - sine, square, or sample and hold
@@ -132,8 +137,3 @@ that's it! you're a musical hacker person now!
 * offset - lfo offset amount
 * lfo freq - lfo speed
 * lfo - lfo on/off toggle
-
-### config
-* skip controls - wether skip jumps back to the start of your loop, or to a random position
-* speed scale - set your speed scale/quantizing
-* audio routing - set the signal flow. default is input + softcut -> engine.

@@ -164,7 +164,7 @@ local lfo_targets = {
   "saturation",
   "crossover",
   "tone",
-  "noise"
+  "hiss"
 }
 
 
@@ -521,7 +521,7 @@ function init()
   params:add_control("tone", "tone", controlspec.new(0.001, 1, "lin", 0.001, 0.004, ''))
   params:set_action("tone", function(x) engine.highbias(x) end)
   -- tape hiss
-  params:add_control("hiss", "noise", controlspec.new(0, 10, "lin", 0.01, 0.001, ''))
+  params:add_control("hiss", "hiss", controlspec.new(0, 10, "lin", 0.01, 0.001, ''))
   params:set_action("hiss", function(x) engine.hissAmount(x) end)
 
   params:add_separator("config")

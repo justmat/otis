@@ -142,7 +142,7 @@ function sc.init()
   params:add_separator("loops")
 
   for i = 1, 2 do
-    params:add_group("loop" .. i, 14)
+    params:add_group("loop" .. i, 9)
     -- l/r volume controls
     params:add_control(i .. "vol", i .. " vol", controlspec.new(0, 1, "lin", 0, 1, ""))
     params:set_action(i .. "vol", function(x) softcut.level(i, x) end)

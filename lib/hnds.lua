@@ -7,6 +7,9 @@
 -- v0.4 @justmat
 
 local number_of_outputs = 4
+local envelope = 0
+local lamp_val = 0
+local ramp_val = 0
 
 local tau = math.pi * 2
 
@@ -14,7 +17,14 @@ local options = {
   lfotypes = {
     "sine",
     "square",
-    "s+h"
+    "s+h",
+    "l env follower",
+    "r env follower"
+  },
+
+  polarity = {
+    "+",
+    "-"
   }
 }
 
@@ -25,8 +35,9 @@ for i = 1, number_of_outputs do
     counter = 1,
     waveform = options.lfotypes[1],
     slope = 0,
-    depth = 100,
-    offset = 0
+    depth = 25,
+    offset = 0,
+    polarity = options.polarity[1]
   }
 end
 
@@ -80,13 +91,27 @@ function lfo.init()
   params:add_separator("modulation")
   for i = 1, number_of_outputs do
     -- modulation destination
-    params:add_group("lfo " .. i, 6)
+    params:add_group("lfo " .. i, 7)
     params:add_option(i .. "lfo_target", i .. " lfo target", lfo[i].lfo_targets, 1)
     -- lfo shape
     params:add_option(i .. "lfo_shape", i .. " lfo shape", options.lfotypes, 1)
-    params:set_action(i .. "lfo_shape", function(value) lfo[i].waveform = options.lfotypes[value] end)
+    params:set_action(i .. "lfo_shape", 
+      function(value)
+        lfo[i].waveform = options.lfotypes[value]
+        if lfo[i].waveform == "l env follower" or lfo[i].waveform == "r env follower" then
+          params:show(i .. "env_pol")
+          _menu.rebuild_params()
+        else
+          params:hide(i .. "env_pol")
+          _menu.rebuild_params()
+        end
+      end)
+    -- envelope polarity
+    params:add_option(i .. "env_pol", i .. " polarity", options.polarity, 1)
+    params:set_action(i .. "env_pol", function(value) lfo[i].polarity = options.polarity[value] end)
+    --params:hide(i .. "env_pol")
     -- lfo depth
-    params:add_number(i .. "lfo_depth", i .. " lfo depth", 0, 100, 100)
+    params:add_number(i .. "lfo_depth", i .. " lfo depth", 0, 100, 25)
     params:set_action(i .. "lfo_depth", function(value) lfo[i].depth = value end)
     -- lfo offset
     params:add_control(i .."offset", i .. " offset", controlspec.new(-4.0, 3.0, "lin", 0.1, 0.0, ""))
@@ -97,6 +122,31 @@ function lfo.init()
     -- lfo on/off
     params:add_option(i .. "lfo", i .. " lfo", {"off", "on"}, 1)
   end
+
+
+  lenv = poll.set("amp_in_l")
+  lenv.callback = function(x)
+    x = x * 100
+    if x < 1.0 then
+      lamp_val = 0
+    else
+      lamp_val = lfo.scale(x, 0.0, 100.0, -1.0, 1.0)
+    end
+  end
+  lenv.time = 1/60
+  lenv:start()
+  
+  renv = poll.set("amp_in_r")
+  renv.callback = function(x)
+    x = x * 100
+    if x < 1.0 then
+      ramp_val = 0
+    else
+      ramp_val = lfo.scale(x, 0.0, 100.0, -1.0, 1.0)
+    end
+  end
+  renv.time = 1/60
+  renv:start()
 
   local lfo_metro = metro.init()
   lfo_metro.time = .01
@@ -111,6 +161,18 @@ function lfo.init()
           slope = make_square(i)
         elseif lfo[i].waveform == "s+h" then
           slope = make_sh(i)
+        elseif lfo[i].waveform == "l env follower" then
+          if lfo[i].polarity == "+" then
+            slope = lamp_val
+          else
+            slope = -lamp_val
+          end
+        elseif lfo[i].waveform == "r env follower" then
+          if lfo[i].polarity == "+" then
+            slope = ramp_val
+          else
+            slope = -ramp_val
+          end
         end
         lfo[i].prev = slope
         lfo[i].slope = math.max(-1.0, math.min(1.0, slope)) * (lfo[i].depth * 0.01) + lfo[i].offset

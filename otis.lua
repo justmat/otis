@@ -113,6 +113,11 @@ local function flip(n)
   local spd = params:get(n .. "speed")
   spd = -spd
   params:set(n .. "speed", spd)
+  if n == 1 then
+    flipped_L = not flipped_L
+  elseif n == 2 then
+    flipped_R = not flipped_R
+  end
 end
 
 
@@ -139,9 +144,10 @@ end
 -- for lib/hnds
 lfo = include("lib/hnds")
 
-local lfo_types = {"sine", "square", "s+h"}
+local lfo_types = {"sine", "square", "s+h", "l env follower", "r env follower"}
 local show_lfo_info = {false, false, false, false}
 local lfo_index = nil
+
 
 local lfo_targets = {
   "none",
@@ -181,15 +187,23 @@ function lfo.process()
         params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 4.0, 32.0))
       -- left/right panning, volume, feedback
       elseif target > 3 and target <= 9 then
-        params:set(lfo_targets[target], lfo[i].slope)
+        params:set(lfo_targets[target], util.clamp(lfo[i].slope, -1, 1))
       -- speed
       elseif target == 10 or target == 11 then
         --no speed control
         if params:get("speed_controls") == 1 then
-          params:set(lfo_targets[target], lfo[i].slope)
+          if flipped_L or flipped_R then
+            params:set(lfo_targets[target], -lfo[i].slope)
+          else
+            params:set(lfo_targets[target], lfo[i].slope)
+          end
         elseif params:get("speed_controls") > 1 then
           local speed_set = spds.names[params:get("speed_controls")]
-          params:set(lfo_targets[target], spds[speed_set][util.round(util.linlin(-1.0,1.0,1,#spds[speed_set], lfo[i].slope))])
+          if flipped_L or flipped_R then
+            params:set(lfo_targets[target], -spds[speed_set][util.round(util.linlin(-1.0,1.0,1,#spds[speed_set], lfo[i].slope))])
+          else
+            params:set(lfo_targets[target], spds[speed_set][util.round(util.linlin(-1.0,1.0,1,#spds[speed_set], lfo[i].slope))])
+          end
         end
       -- record L on/off
       elseif target == 12 then
@@ -197,12 +211,10 @@ function lfo.process()
           if not rec1 then
             rec1 = true
             params:set("1rec", 1)
-            --softcut.rec(1, 1)
           end
         else
           rec1 = false
           params:set("1rec", 0)
-          --softcut.rec(1, 0)
         end
       -- record R on/off
       elseif target == 13 then
@@ -210,12 +222,10 @@ function lfo.process()
           if not rec2 then
             rec2 = true
             params:set("2rec", 1)
-            --softcut.rec(2, 1)
           end
         else
           rec2 = false
           params:set("2rec", 0)
-          --softcut.rec(2, 0)
         end
       -- flip L
       elseif target == 14 then
@@ -262,6 +272,7 @@ function lfo.process()
   end
 end
 
+
 -- for softcut phase/position polls
 positions = { -1, -1, -1, -1}
 
@@ -301,7 +312,13 @@ local function play_enc(n, d)
     end
   else
     if n == 2 or n == 3 then
-      speed_control(n - 1, d)
+      for i = 1, 4 do
+        if params:get(i .. "lfo_target") == 10 or params:get(i .. "lfo_target") == 11 then
+          params:delta(n - 1 .. "offset", d)
+        else
+          speed_control(n - 1, d)
+        end
+      end
     end
   end
 end
@@ -501,6 +518,7 @@ function init()
     softcut.event_phase(update_positions)
     softcut.poll_start_phase()
   end
+
   -- set the midi event function
   m.event = midi_control
   -- engine parameters
@@ -527,10 +545,11 @@ function init()
   params:add_separator("config")
 
   params:add_option("skip_controls", "skip controls", skip_options, 1)
-  params:add_option("speed_controls", "speed scale", spds.names, 1)
+  params:add_option("speed_controls", "speed controls", spds.names, 1)
+
   params:add{
     type = "option", id = "audio_routing", name = "audio routing", 
-    options = {"in+cut->eng","in->eng","cut->eng"},
+    options = {"in+cut->eng", "in->eng", "cut->eng"},
     -- min = 1, max = 3, 
     default = 1,
     action = function(value) 
@@ -722,7 +741,6 @@ local function draw_lfo_info()
   screen.text("2. depth: " .. params:get(lfo_index .. "lfo_depth"))
   screen.move(5, 43)
   screen.text("3. offset: " .. params:get(lfo_index .. "offset"))
-
 end
 
 
@@ -1051,7 +1069,7 @@ function route_audio()
         os.execute("jack_connect crone:output_5 SuperCollider:in_1;")  
         os.execute("jack_connect crone:output_6 SuperCollider:in_2;")
         os.execute("jack_connect softcut:output_1 SuperCollider:in_1;")  
-        os.execute("jack_connect softcut:output_2 SuperCollider:in_2;")      
+        os.execute("jack_connect softcut:output_2 SuperCollider:in_2;")
       elseif selected_route == 2 then --just audio in -> supercollider
         os.execute("jack_disconnect softcut:output_1 SuperCollider:in_1;")  
         os.execute("jack_disconnect softcut:output_2 SuperCollider:in_2;")
@@ -1061,7 +1079,7 @@ function route_audio()
         os.execute("jack_disconnect crone:output_5 SuperCollider:in_1;")  
         os.execute("jack_disconnect crone:output_6 SuperCollider:in_2;")
         os.execute("jack_connect softcut:output_1 SuperCollider:in_1;")  
-        os.execute("jack_connect softcut:output_2 SuperCollider:in_2;")        
+        os.execute("jack_connect softcut:output_2 SuperCollider:in_2;")
       end
     end
 end

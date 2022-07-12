@@ -1,5 +1,5 @@
 
-# otis v2.1
+# otis v2.2
 
 ![pixelcat](assets/pixelotis.png)
 
@@ -43,10 +43,10 @@ _skip behavior by default is a loop reset; however, it can be configured to jump
 * ALT + key 2 = clear buffer L
 * ALT + key 3 = clear buffer R
 
-* enc 2 = tape length L
-* enc 3 = tape length R
-* ALT + enc 2 = skip config
-* ALT + enc 3 = speed config
+* enc 2 = left loop start
+* enc 3 = right loop start
+* ALT + enc 2 = left loop end
+* ALT + enc 3 = right loop end
 
 _nb: turning rec L/R off will hold the buffer, allowing use as a looper._
 

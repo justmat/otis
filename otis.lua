@@ -113,11 +113,6 @@ local function flip(n)
   local spd = params:get(n .. "speed")
   spd = -spd
   params:set(n .. "speed", spd)
-  if n == 1 then
-    flipped_L = not flipped_L
-  elseif n == 2 then
-    flipped_R = not flipped_R
-  end
 end
 
 
@@ -207,58 +202,40 @@ function lfo.process()
         end
       -- record L on/off
       elseif target == 12 then
-        if lfo[i].slope > 0 then
-          if not rec1 then
-            rec1 = true
-            params:set("1rec", 1)
-          end
-        else
-          rec1 = false
-          params:set("1rec", 0)
+        if lfo[i].slope > 0 and lfo[i].prev_polarity < 0 then
+          rec1 = not rec1
+          params:set("1rec", rec1 == true and 1 or 0)
         end
       -- record R on/off
       elseif target == 13 then
-        if lfo[i].slope > 0 then
-          if not rec2 then
-            rec2 = true
-            params:set("2rec", 1)
-          end
-        else
-          rec2 = false
-          params:set("2rec", 0)
+        if lfo[i].slope > 0 and lfo[i].prev_polarity < 0 then
+          rec2 = not rec2
+          params:set("2rec", rec2 == true and 1 or 0)
         end
       -- flip L
       elseif target == 14 then
-        if lfo[i].slope > 0 then
-          if not flipped_L then
-            flip(1)
-            flipped_L = true
-          end
-        else flipped_L = false end
+        if lfo[i].slope > 0 and lfo[i].prev_polarity < 0 then
+          flipped_L = not flipped_L
+          flip(1)
+        end
       -- flip R
       elseif target == 15 then
-        if lfo[i].slope > 0 then
-          if not flipped_R then
-            flip(2)
-            flipped_R = true
-          end
-        else flipped_R = false end
+        if lfo[i].slope > 0 and lfo[i].prev_polarity < 0 then
+          flipped_R = not flipped_R
+          flip(2)
+        end
       -- skip L
       elseif target == 16 then
-        if lfo[i].slope > 0 then
-          if not skipped_L then
-            skip(1)
-            skipped_L = true
-          end
-        else skipped_L = false end
+        if lfo[i].slope > 0 and lfo[i].prev_polarity < 0 then
+          skipped_L = not skipped_L
+          skip(1)
+        end
       -- skip R
       elseif target == 17 then
-        if lfo[i].slope > 0 then
-          if not skipped_R then
-            skip(2)
-            skipped_R = true
-          end
-        else skipped_R = false end
+        if lfo[i].slope > 0 and lfo[i].prev_polarity < 0 then
+          skipped_R = not skipped_R
+          skip(2)
+        end
       elseif target == 18 then --saturation
         params:set(lfo_targets[target], lfo.scale(lfo[i].slope, -1, 1, 0.0, 400.0))
       elseif target == 19 then --crossover

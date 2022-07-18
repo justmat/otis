@@ -113,6 +113,8 @@ local function flip(n)
   local spd = params:get(n .. "speed")
   spd = -spd
   params:set(n .. "speed", spd)
+  if n == 1 then skip_time_L = util.time() end
+  if n == 2 then skip_time_R = util.time() end
 end
 
 
@@ -388,10 +390,8 @@ local function play_key(n, z)
   if alt == 1 then
     if n == 2 and z == 1 then
       skip(1)
-      skip_time_L = util.time()
     elseif n == 3 and z ==1 then
       skip(2)
-      skip_time_R = util.time()
     end
   else
     if n == 2 and z == 1 then

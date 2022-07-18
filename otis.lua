@@ -196,45 +196,47 @@ function lfo.process()
           end
         elseif params:get("speed_controls") > 1 then
           local speed_set = spds.names[params:get("speed_controls")]
+          speed_index[target - 9] = util.round(util.linlin(-1.0,1.0,1,#spds[speed_set], lfo[i].slope))
           if flipped_L or flipped_R then
-            params:set(lfo_targets[target], -spds[speed_set][util.round(util.linlin(-1.0,1.0,1,#spds[speed_set], lfo[i].slope))])
+            params:set(lfo_targets[target], -spds[speed_set][speed_index[target - 9]])
           else
-            params:set(lfo_targets[target], spds[speed_set][util.round(util.linlin(-1.0,1.0,1,#spds[speed_set], lfo[i].slope))])
+            params:set(lfo_targets[target], spds[speed_set][speed_index[target - 9]])
           end
         end
       -- record L on/off
       elseif target == 12 then
-        if lfo[i].slope > 0 and lfo[i].prev_polarity < 0 then
+        if lfo[i].trig and lfo[i].slope > 0 then
           rec1 = not rec1
           params:set("1rec", rec1 == true and 1 or 0)
         end
       -- record R on/off
       elseif target == 13 then
-        if lfo[i].slope > 0 and lfo[i].prev_polarity < 0 then
+        if lfo[i].trig and lfo[i].slope > 0 then
           rec2 = not rec2
           params:set("2rec", rec2 == true and 1 or 0)
         end
       -- flip L
       elseif target == 14 then
-        if lfo[i].slope > 0 and lfo[i].prev_polarity < 0 then
+        if lfo[i].trig and lfo[i].slope > 0 then
           flipped_L = not flipped_L
           flip(1)
         end
+
       -- flip R
       elseif target == 15 then
-        if lfo[i].slope > 0 and lfo[i].prev_polarity < 0 then
+        if lfo[i].trig and lfo[i].slope > 0 then
           flipped_R = not flipped_R
           flip(2)
         end
       -- skip L
       elseif target == 16 then
-        if lfo[i].slope > 0 and lfo[i].prev_polarity < 0 then
+        if lfo[i].trig and lfo[i].slope > 0 then
           skipped_L = not skipped_L
           skip(1)
         end
       -- skip R
       elseif target == 17 then
-        if lfo[i].slope > 0 and lfo[i].prev_polarity < 0 then
+        if lfo[i].trig and lfo[i].slope > 0 then
           skipped_R = not skipped_R
           skip(2)
         end

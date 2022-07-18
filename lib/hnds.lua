@@ -37,7 +37,8 @@ for i = 1, number_of_outputs do
     slope = 0,
     depth = 25,
     offset = 0,
-    polarity = options.polarity[1]
+    polarity = options.polarity[1],
+    trig = false
   }
 end
 
@@ -67,7 +68,14 @@ end
 
 
 local function make_sine(n)
-  return 1 * math.sin(((tau / 100) * (lfo[n].counter)) - (tau / (lfo[n].freq)))
+  local v = 1 * math.sin(((tau / 100) * (lfo[n].counter)) - (tau / (lfo[n].freq)))
+  local pv = 1 * math.sin(((tau / 100) * (lfo[n].counter - 1)) - (tau / (lfo[n].freq)))
+  if pv < 0 and v > 0 then
+    lfo[n].trig = true
+  else
+    lfo[n].trig = false
+  end
+  return v
 end
 
 
@@ -84,6 +92,7 @@ local function make_sh(n)
   else
     return lfo[n].prev
   end
+  print(lfo[n].prev)
 end
 
 

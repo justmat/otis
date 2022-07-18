@@ -105,6 +105,8 @@ local function skip(n)
     local length = params:get(n .. "loop_end")
     softcut.position(n, lfo.scale(math.random(), params:get(n .. "loop_start"), 1.0, 0.25, length))
   end
+  if n == 1 then skip_time_L = util.time() end
+  if n == 2 then skip_time_R = util.time() end
 end
 
 
@@ -113,8 +115,6 @@ local function flip(n)
   local spd = params:get(n .. "speed")
   spd = -spd
   params:set(n .. "speed", spd)
-  if n == 1 then skip_time_L = util.time() end
-  if n == 2 then skip_time_R = util.time() end
 end
 
 

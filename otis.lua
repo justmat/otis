@@ -89,6 +89,7 @@ local flipped_L = false
 local flipped_R = false
 local skipped_L = false
 local skipped_R = false
+local fine_adjust = false
 
 local pages = {"mix", "play", "edit"}
 local skip_options = {"start", "???"}
@@ -121,13 +122,14 @@ end
 local function speed_control(n, d)
   -- free speed controls
   if params:get("speed_controls") == 1 then
-    params:delta(n .. "speed", d / 7.5)
+    params:delta(n .. "speed", d)
     if params:get(n .. "speed") == 0 then
       params:set(n .. "speed", d < 0 and -0.01 or 0.01)
     end
   -- quantized speed controls
   else
     local speed_set = spds.names[params:get("speed_controls")]
+
     if d < 0 then
       speed_index[n] = util.clamp(speed_index[n] - 1, 1, #spds[speed_set])
     else
@@ -135,6 +137,17 @@ local function speed_control(n, d)
     end
     params:set(n .. "speed", spds[speed_set][speed_index[n]])
   end
+end
+
+
+local function check_for_speed_modulation()
+  local b = false
+  for i = 1, 4 do
+    if params:get(i .. "lfo_target") == 10 or params:get(i .. "lfo_target") == 11 then
+      b = true
+    end
+  end
+  return b
 end
 
 
@@ -167,7 +180,7 @@ local lfo_targets = {
   "saturation",
   "crossover",
   "tone",
-  "hiss"
+  "hiss",
 }
 
 
@@ -255,7 +268,7 @@ end
 
 
 -- for softcut phase/position polls
-positions = { -1, -1, -1, -1}
+positions = { -1, -1}
 
 local function update_positions(i, pos)
   positions[i] = pos
@@ -293,12 +306,10 @@ local function play_enc(n, d)
     end
   else
     if n == 2 or n == 3 then
-      for i = 1, 4 do
-        if params:get(i .. "lfo_target") == 10 or params:get(i .. "lfo_target") == 11 then
-          params:delta(n - 1 .. "offset", d)
-        else
-          speed_control(n - 1, d)
-        end
+      if check_for_speed_modulation() == true then
+        params:delta(n - 1 .. "offset", d)
+      else
+        speed_control(n - 1, d)
       end
     end
   end
@@ -332,10 +343,14 @@ function enc(n, d)
       id = i
     end
   end
-  -- navigation
+  -- enc 1 navigation
   if n == 1 and not id then
-    page = util.clamp(page + d, 1, 3)
-    page_time = util.time()
+    if alt == 1 then
+      fine_adjust = d > 0 and true or false
+    else
+      page = util.clamp(page + d, 1, 3)
+      page_time = util.time()
+    end
   end
 
   if id then
@@ -356,11 +371,11 @@ function enc(n, d)
       params:delta("2loop_end", d / 12)
     end
   elseif page == 1 then
-    mix_enc(n,d)
+    mix_enc(n, fine_adjust == true and d * 0.01 or d)
   elseif page == 2 then
-    play_enc(n, d)
+    play_enc(n, fine_adjust == true and d * 0.01 or d)
   elseif page == 3 then
-    edit_enc(n, d)
+    edit_enc(n, fine_adjust == true and d * 0.01 or d)
   end
 end
 
@@ -737,6 +752,11 @@ function redraw()
     screen.level(1)
     screen.text(pages[page])
   end
+  -- indicate fine/coarse adjustments
+  screen.move(5, 5)
+  screen.level(alt == 1 and 15 or 1)
+  screen.text_right(fine_adjust == true and " f" or " c")
+  
   -- holding the lfo on/patch grid button will hijack the screen
   -- if an lfo on/patch button is held store the lfo index in id
   -- otherwise id will be nil

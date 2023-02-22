@@ -50,6 +50,7 @@ _skip behavior by default is a loop reset; however, it can be configured to jump
 
 _nb: turning rec L/R off will hold the buffer, allowing use as a looper._
 
+_nb: on all pages, alt + enc 1 toggles between fine and coarse parameter adjustments. turn enc 1 right for fine, left for coarse._
 ---
 
 # grid 

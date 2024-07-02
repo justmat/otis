@@ -92,7 +92,8 @@ local skipped_R = false
 local fine_adjust = false
 
 local pages = {"mix", "play", "edit"}
-local skip_options = {"start", "???"}
+local skip_options = {"start", "???", "coco"}
+local skip_pos = {nil, nil}
 local spds = include("lib/spds")
 local speed_index = {4, 4} -- maybe move this to spds.lua?
 
@@ -100,12 +101,20 @@ local speed_index = {4, 4} -- maybe move this to spds.lua?
 -- flip, skip, and speed controls
 local function skip(n)
   -- reset loop to start, or jump to a random position
-  if params:get("skip_controls") == 1 then
+  local switch = params:get("skip_controls")
+  if switch == 1 then
     softcut.position(n, params:get(n .. "loop_start"))
-  else
+  elseif switch == 2 then
     local length = params:get(n .. "loop_end")
     softcut.position(n, lfo.scale(math.random(), params:get(n .. "loop_start"), 1.0, 0.25, length))
+  elseif switch == 3 then
+    if skip_pos[n] == nil then
+      skip_pos[n] = positions[n]
+    else
+      softcut.position(n, skip_pos[n])
+    end
   end
+  -- for screen drawing
   if n == 1 then skip_time_L = util.time() end
   if n == 2 then skip_time_R = util.time() end
 end
@@ -116,6 +125,22 @@ local function flip(n)
   local spd = params:get(n .. "speed")
   spd = -spd
   params:set(n .. "speed", spd)
+  if n == 1 then
+    flipped_L = not flipped_L
+  else
+    flipped_R = not flipped_R
+  end
+end
+
+
+local function check_flip_set_speed(i, val)
+  if i == 1 and flipped_L then
+    params:set("1speed", -val)
+  elseif i == 2 and flipped_R then
+    params:set("2speed", -val)
+  else
+    params:set(i .. "speed", val)
+  end
 end
 
 
@@ -123,9 +148,6 @@ local function speed_control(n, d)
   -- free speed controls
   if params:get("speed_controls") == 1 then
     params:delta(n .. "speed", d)
-    if params:get(n .. "speed") == 0 then
-      params:set(n .. "speed", d < 0 and -0.01 or 0.01)
-    end
   -- quantized speed controls
   else
     local speed_set = spds.names[params:get("speed_controls")]
@@ -141,15 +163,16 @@ end
 
 
 local function check_for_speed_modulation()
-  local b = false
+  local l,r = false,false
   for i = 1, 4 do
-    if params:get(i .. "lfo_target") == 10 or params:get(i .. "lfo_target") == 11 then
-      b = true
+    if params:get(i .. "lfo_target") == 10 then
+      l = true
+    elseif params:get(i .. "lfo_target") == 11 then
+      r = true
     end
   end
-  return b
+  return l,r
 end
-
 
 -- for lib/hnds
 lfo = include("lib/hnds")
@@ -157,7 +180,6 @@ lfo = include("lib/hnds")
 local lfo_types = {"sine", "square", "s+h", "l env follower", "r env follower"}
 local show_lfo_info = {false, false, false, false}
 local lfo_index = nil
-
 
 local lfo_targets = {
   "none",
@@ -199,22 +221,25 @@ function lfo.process()
       elseif target > 3 and target <= 9 then
         params:set(lfo_targets[target], util.clamp(lfo[i].slope, -1, 1))
       -- speed
-      elseif target == 10 or target == 11 then
-        --no speed control
+      elseif target == 10 then
+        -- free speed/no speed control
         if params:get("speed_controls") == 1 then
-          if flipped_L or flipped_R then
-            params:set(lfo_targets[target], -lfo[i].slope)
-          else
-            params:set(lfo_targets[target], lfo[i].slope)
-          end
+          check_flip_set_speed(1, lfo[i].slope)
+        -- quantized speed
         elseif params:get("speed_controls") > 1 then
           local speed_set = spds.names[params:get("speed_controls")]
-          speed_index[target - 9] = util.round(util.linlin(-1.0,1.0,1,#spds[speed_set], lfo[i].slope))
-          if flipped_L or flipped_R then
-            params:set(lfo_targets[target], -spds[speed_set][speed_index[target - 9]])
-          else
-            params:set(lfo_targets[target], spds[speed_set][speed_index[target - 9]])
-          end
+          speed_index[1] = util.round(util.linlin(-1.0,1.0,1,#spds[speed_set], lfo[i].slope))
+          check_flip_set_speed(1, spds[speed_set][speed_index[1]])
+        end
+      elseif target == 11 then
+        -- free speed/no speed control
+        if params:get("speed_controls") == 1 then
+          check_flip_set_speed(2, lfo[i].slope)
+        -- quantized speed
+        elseif params:get("speed_controls") > 1 then
+          local speed_set = spds.names[params:get("speed_controls")]
+          speed_index[2] = util.round(util.linlin(-1.0,1.0,1,#spds[speed_set], lfo[i].slope))
+          check_flip_set_speed(2, spds[speed_set][speed_index[2]])
         end
       -- record L on/off
       elseif target == 12 then
@@ -230,15 +255,12 @@ function lfo.process()
         end
       -- flip L
       elseif target == 14 then
-        if lfo[i].trig and lfo[i].slope > 0 then
-          flipped_L = not flipped_L
+        if lfo[i].trig then
           flip(1)
         end
-
       -- flip R
       elseif target == 15 then
-        if lfo[i].trig and lfo[i].slope > 0 then
-          flipped_R = not flipped_R
+        if lfo[i].trig then
           flip(2)
         end
       -- skip L
@@ -306,10 +328,13 @@ local function play_enc(n, d)
     end
   else
     if n == 2 or n == 3 then
-      if check_for_speed_modulation() == true then
-        params:delta(n - 1 .. "offset", d)
-      else
+      local l,r = check_for_speed_modulation()
+      if l == false then
         speed_control(n - 1, d)
+      elseif r == false then
+        speed_control(n - 1, d)
+      else
+        -- hmmmm
       end
     end
   end
@@ -505,13 +530,6 @@ end
 
 
 function init()
-  -- setup softcut and start the phase polls
-  sc.init()
-  for i = 1, 2 do
-    softcut.phase_quant(i, .005)
-    softcut.event_phase(update_positions)
-    softcut.poll_start_phase()
-  end
 
   -- set the midi event function
   m.event = midi_control
@@ -551,6 +569,14 @@ function init()
       clock.run(route_audio)
     end
     }
+
+  -- setup softcut and start the phase polls
+  sc.init()
+  for i = 1, 2 do
+    softcut.phase_quant(i, .005)
+    softcut.event_phase(update_positions)
+    softcut.poll_start_phase()
+  end
 
   -- for lib/hnds
   for i = 1, 4 do
@@ -608,6 +634,11 @@ end
 
 local function draw_skip_rand()
   screen.text("???")
+end
+
+
+local function draw_skip_coco()
+  screen.text("coco")
 end
 
 
@@ -671,22 +702,30 @@ local function draw_page_play()
   screen.text_right("skip")
 
   if util.time() - skip_time_L < .15 then
-    if params:get("skip_controls") == 1 then
+    local switch = params:get("skip_controls")
+    if switch == 1 then
       screen.move(18, 40)
       draw_skip()
-    else
+    elseif switch == 2 then
       screen.move(7, 40)
       draw_skip_rand()
+    elseif switch == 3 then
+      screen.move(6, 40)
+      draw_skip_coco()
     end
   end
 
   if util.time() - skip_time_R < .15 then
-    if params:get("skip_controls") == 1 then
+    local switch = params:get("skip_controls")
+    if switch == 1 then
       screen.move(120, 40)
       draw_skip()
-    else
+    elseif switch == 2 then
       screen.move(109, 40)
       draw_skip_rand()
+    elseif switch == 3 then
+      screen.move(108, 40)
+      draw_skip_coco()
     end
   end
 end

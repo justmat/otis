@@ -80,6 +80,28 @@ local function set_loop_start(i, v)
 end
 
 
+local function set_loop_end(buf, v)
+  v = util.clamp(v, params:get(buf .. "loop_start") + .01, 60.0)
+  params:set(buf .. "loop_end", v)
+  softcut.loop_end(buf, v)
+  --print("set loop " .. buf .. " end " .. v)
+end
+
+
+local function load_sample(file, buf)
+  if file == "-" then 
+  else
+    local chan, samples, rate = audio.file_info(file)
+    local sample_len = samples / rate
+    --print(file)
+    softcut.buffer_clear_channel(buf)
+    softcut.buffer_read_mono(file, 0, 0, -1, 1, buf)
+    softcut.loop_start(buf, 0)
+    set_loop_end(buf, sample_len)
+  end
+end
+
+
 function sc.init()
   audio.level_cut(1.0)
   audio.level_adc_cut(1)
@@ -142,7 +164,10 @@ function sc.init()
   params:add_separator("loops")
 
   for i = 1, 2 do
-    params:add_group("loop" .. i, 9)
+    params:add_group("loop" .. i, 10)
+    -- sample loading
+    params:add_file(i .. "sample", i .. " sample")
+    params:set_action(i .. "sample", function(file)  load_sample(file, i) end)
     -- l/r volume controls
     params:add_control(i .. "vol", i .. " vol", controlspec.new(0, 1, "lin", 0, 1, ""))
     params:set_action(i .. "vol", function(x) softcut.level(i, x) end)
@@ -157,7 +182,7 @@ function sc.init()
     params:set_action(i .. "loop_start", function(x) set_loop_start(i, x) end)
     -- tape length controls
     params:add_control(i .. "loop_end", i .. " loop end", controlspec.new(.25, 60, "lin", .01, 2, "secs"))
-    params:set_action(i .. "loop_end", function(x) softcut.loop_end(i, x) end)
+    params:set_action(i .. "loop_end", function(x) set_loop_end(i, x) end)
     -- feedback controls
     params:add_control(i .. "feedback", i .. " feedback", controlspec.new(0, 1, "lin", 0, .75, ""))
     params:set_action(i .. "feedback", function(x) softcut.pre_level(i, x) end)

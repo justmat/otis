@@ -113,6 +113,7 @@ local function skip(n)
     else
       softcut.position(n, skip_pos[n])
     end
+    --print(n == 1 and "L" .. " " .. "skip position " .. skip_pos[n] or "R" .. " " .. "skip position " .. skip_pos[n])
   end
   -- for screen drawing
   if n == 1 then skip_time_L = util.time() end
@@ -163,16 +164,19 @@ end
 
 
 local function check_for_speed_modulation()
-  local l,r = false,false
+  local l,r,lfo = false,false, {0, 0}
   for i = 1, 4 do
     if params:get(i .. "lfo_target") == 10 then
       l = true
+      lfo[1] = i
     elseif params:get(i .. "lfo_target") == 11 then
       r = true
+      lfo[2] = i
     end
   end
-  return l,r
+  return l,r,lfo
 end
+
 
 -- for lib/hnds
 lfo = include("lib/hnds")
@@ -180,6 +184,7 @@ lfo = include("lib/hnds")
 local lfo_types = {"sine", "square", "s+h", "l env follower", "r env follower"}
 local show_lfo_info = {false, false, false, false}
 local lfo_index = nil
+
 
 local lfo_targets = {
   "none",
@@ -327,14 +332,18 @@ local function play_enc(n, d)
       params:delta("2feedback", d)
     end
   else
-    if n == 2 or n == 3 then
-      local l,r = check_for_speed_modulation()
-      if l == false then
-        speed_control(n - 1, d)
-      elseif r == false then
-        speed_control(n - 1, d)
+    local l,r,lfo = check_for_speed_modulation()
+    if n == 2 then
+      if l then
+        params:delta(lfo[1] .. "offset", d)
       else
-        -- hmmmm
+        speed_control(n - 1, d)
+      end
+    elseif n == 3 then
+      if r then
+        params:delta(lfo[2] .. "offset", d)
+      else
+        speed_control(n - 1, d)
       end
     end
   end
@@ -666,9 +675,14 @@ end
 
 local function draw_page_play()
   -- screen drawing for the play page
+  local l,r,lfo = check_for_speed_modulation()
   screen.level(alt == 1 and 3 or 15)
   screen.move(64, 15)
-  screen.text_center("speed L : " .. string.format("%.2f", math.abs(params:get("1speed"))))
+  if l then
+    screen.text_center("spd:" .. string.format("%.2f", math.abs(params:get("1speed"))) .. " " .. "offset:" .. params:get(lfo[1] .. "offset"))
+  else
+   screen.text_center("speed L : " .. string.format("%.2f", math.abs(params:get("1speed"))))
+  end
   screen.move(64, 23)
   screen.text_center("speed R : " .. string.format("%.2f", math.abs(params:get("2speed"))))
   screen.level(alt == 1 and 15 or 3)
@@ -677,16 +691,16 @@ local function draw_page_play()
   screen.move(64, 39)
   screen.text_center("feedback R : " .. string.format("%.2f", params:get("2feedback")))
 
-  screen.move(30, 16)
+  screen.move(22, 16)
   screen.level(params:get("1speed") < 0 and 15 or 0)
   draw_left()
-  screen.move(30, 24)
+  screen.move(22, 24)
   screen.level(params:get("2speed") < 0 and 15 or 0)
   draw_left()
-  screen.move(99, 16)
+  screen.move(108, 16)
   screen.level(params:get("1speed") > 0 and 15 or 0)
   draw_right()
-  screen.move(99, 24)
+  screen.move(108, 24)
   screen.level(params:get("2speed") > 0 and 15 or 0)
   draw_right()
 

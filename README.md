@@ -1,5 +1,5 @@
 
-# otis v2.2
+# otis v2.3
 
 ![pixelcat](assets/pixelotis.png)
 
